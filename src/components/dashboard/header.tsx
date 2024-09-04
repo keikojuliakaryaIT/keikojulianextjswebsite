@@ -18,8 +18,8 @@ export default function HeaderDashboard() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const menuItems = [
-    { title: "Home", href: "dashboard/home" },
-    { title: "Admin", href: "dashboard/admin" },
+    { title: "Home", href: "home" },
+    { title: "Admin", href: "admin" },
   ];
 
   return (
