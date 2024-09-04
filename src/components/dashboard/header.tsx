@@ -18,9 +18,8 @@ export default function HeaderDashboard() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const menuItems = [
-    "Home",
-		"Stock In",
-		"Stock Out",
+    { title: "Home", href: "dashboard/home" },
+    { title: "Admin", href: "dashboard/admin" },
   ];
 
   return (
@@ -37,12 +36,17 @@ export default function HeaderDashboard() {
           <p className="font-bold text-inherit">Keiko Julia Karya</p>
         </NavbarBrand>
       </NavbarContent>
-      <NavbarContent/>
+      <NavbarContent />
       <NavbarMenu>
         {menuItems.map((item, index) => (
-          <NavbarMenuItem key={`${item}-${index}`}>
-            <Link color={"foreground"} className="w-full" href="#" size="lg">
-              {item}
+          <NavbarMenuItem key={`${item.title}-${index}`}>
+            <Link
+              color={"foreground"}
+              className="w-full"
+              href={item.href}
+              size="lg"
+            >
+              {item.title}
             </Link>
           </NavbarMenuItem>
         ))}

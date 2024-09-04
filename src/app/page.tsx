@@ -62,7 +62,7 @@ function Login() {
     setloaded(false);
     toast("Success, Welcome");
     // else successful
-    return router.push("/dashboard");
+    return router.push("/dashboard/home");
   };
 
   if (loading) {
