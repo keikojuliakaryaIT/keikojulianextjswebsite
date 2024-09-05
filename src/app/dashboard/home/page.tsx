@@ -1,6 +1,7 @@
 "use client";
 import {
   Button,
+  CircularProgress,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -30,11 +31,23 @@ import { users } from "./data";
 import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
-const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
-type User = (typeof users)[0];
+type ProductType = {
+  description: string;
+  id: string;
+  idProduct: string;
+  image: string;
+  nameProduct: string;
+  nomor: string;
+  notes: string;
+  status: string;
+  stock: Number;
+  type: string;
+}[];
 
 export default function HomeDashboard() {
+  const [onRefresh, setOnRefresh] = useState(false);
   const [filterValue, setFilterValue] = useState("");
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [modal, setModalRender] = React.useState("add");
@@ -49,7 +62,7 @@ export default function HomeDashboard() {
     idProduct: string;
     nameProduct: string;
     type: string;
-    stock: number;
+    stock: Number;
     description: string;
     notes: string;
     image: string;
@@ -78,18 +91,17 @@ export default function HomeDashboard() {
   );
   const columns = useMemo(
     () => [
-      { name: "ID", uid: "id", sortable: true },
-      { name: "NAME", uid: "name", sortable: true },
-      { name: "AGE", uid: "age", sortable: true },
-      { name: "ROLE", uid: "role", sortable: true },
-      { name: "TEAM", uid: "team" },
-      { name: "EMAIL", uid: "email" },
+      { name: "ID", uid: "idProduct", sortable: true },
+      { name: "NAME", uid: "nameProduct", sortable: true },
+      { name: "TYPE", uid: "type", sortable: true },
+      { name: "STOCK", uid: "stock", sortable: true },
       { name: "STATUS", uid: "status", sortable: true },
       { name: "ACTIONS", uid: "actions" },
     ],
     []
   );
   const [type, setType] = useState<[{ id: string; type: string }]>();
+  const [defaultProducst, setDefaultProducst] = useState<any>();
 
   const getDataType = useCallback(async () => {
     const { result, error } = await getDataCollection(`Inventory/Admin/Type`);
@@ -100,10 +112,23 @@ export default function HomeDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    getDataType();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const getDataProducts = useCallback(async () => {
+    const { result, error } = await getDataCollection(
+      `Inventory/Storage/Products`
+    );
+
+    if (!error) {
+      setDefaultProducst(result);
+    } else {
+      return toast("ERROR, Please Try Again !");
+    }
+    setOnRefresh(false);
   }, []);
+  useEffect(() => {
+    setOnRefresh(true);
+    getDataType();
+    getDataProducts();
+  }, [getDataProducts, getDataType]);
 
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
@@ -115,7 +140,7 @@ export default function HomeDashboard() {
   const hasSearchFilter = Boolean(filterValue);
 
   const filteredItems = React.useMemo(() => {
-    let filteredUsers = [...users];
+    let filteredUsers = [...(defaultProducst ?? [{}])];
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
@@ -132,7 +157,13 @@ export default function HomeDashboard() {
     }
 
     return filteredUsers;
-  }, [hasSearchFilter, statusFilter, statusOptions.length, filterValue]);
+  }, [
+    defaultProducst,
+    hasSearchFilter,
+    statusFilter,
+    statusOptions.length,
+    filterValue,
+  ]);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -142,11 +173,10 @@ export default function HomeDashboard() {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = React.useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
-      const first = a[sortDescriptor.column as keyof User] as number;
-      const second = b[sortDescriptor.column as keyof User] as number;
+    return [...items].sort((a: ProductType, b: ProductType) => {
+      const first = a[sortDescriptor.column as keyof ProductType] as number;
+      const second = b[sortDescriptor.column as keyof ProductType] as number;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
-
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
@@ -257,7 +287,7 @@ export default function HomeDashboard() {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-default-400 text-small">
-            Total users.length users
+            Total {defaultProducst?.length} Product
           </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
@@ -281,6 +311,7 @@ export default function HomeDashboard() {
     visibleColumns,
     columns,
     openAddModal,
+    defaultProducst?.length,
     onRowsPerPageChange,
     onClear,
   ]);
@@ -396,7 +427,7 @@ export default function HomeDashboard() {
                   <ModalBody>
                     <Input
                       autoFocus
-                      className="w-70v"
+                      className="w-70v max-w-full"
                       classNames={{
                         innerWrapper: "w-[100%]",
                         inputWrapper: "w-[100%]",
@@ -414,7 +445,7 @@ export default function HomeDashboard() {
                     />
                     <Input
                       label="Product Name"
-                      className="w-70v"
+                      className="w-70v max-w-full"
                       labelPlacement="outside"
                       type="text"
                       inputMode="numeric"
@@ -524,6 +555,9 @@ export default function HomeDashboard() {
     }
   }
 
+  if (onRefresh) {
+    return <CircularProgress aria-label="Loading..." />;
+  }
   return (
     <div className="flex justify-center items-center">
       {renderModal()}
@@ -547,8 +581,8 @@ export default function HomeDashboard() {
         </TableHeader>
         <TableBody emptyContent={"No users found"} items={sortedItems}>
           {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => <TableCell>test</TableCell>}
+            <TableRow key={"test"}>
+              {(columnKey) => <TableCell>{item[columnKey]}</TableCell>}
             </TableRow>
           )}
         </TableBody>

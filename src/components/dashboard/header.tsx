@@ -20,6 +20,8 @@ export default function HeaderDashboard() {
   const menuItems = [
     { title: "Home", href: "home" },
     { title: "Admin", href: "admin" },
+    { title: "Operational", href: "operational" },
+		
   ];
 
   return (
@@ -33,7 +35,7 @@ export default function HeaderDashboard() {
       </NavbarContent>
       <NavbarContent justify="center">
         <NavbarBrand>
-          <p className="font-bold text-inherit">Keiko Julia Karya</p>
+          <p className="font-bold text-inherit">Inventaris App</p>
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent />

@@ -131,7 +131,7 @@ export default function Admin() {
                   <ModalBody>
                     <Input
                       autoFocus
-                      className="w-80v"
+                      className="w-80v max-w-full"
                       classNames={{
                         innerWrapper: "w-[100%]",
                         inputWrapper: "w-[100%]",
