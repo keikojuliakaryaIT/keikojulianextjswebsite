@@ -1,7 +1,7 @@
 "use client";
 import HeaderDashboard from "@/components/dashboard/header";
 import { AuthContextProvider } from "@/components/firebase/AuthContext";
-import { Link } from "@nextui-org/react";
+import { Image, Link } from "@nextui-org/react";
 import React from "react";
 
 export default function DashboardLayout({
@@ -21,14 +21,18 @@ export default function DashboardLayout({
           <HeaderDashboard />
         </div>
         <div className="sm:flex justify-between hidden px-5 py-5 sticky">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">Keiko Julia</div>
-          <div>Logo</div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            
+          </div>
+          <div>
+            <Image src="/logoResize.png" alt="Keiko Julia Logo" width={100} className="" />
+          </div>
           <div className="flex flex-row">
             {menuItems.map((item, index) => (
               <Link
                 key={index}
                 color={"primary"}
-								className="mx-5"
+                className="mx-5"
                 href={item.href}
                 size="lg"
               >

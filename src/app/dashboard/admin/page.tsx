@@ -22,6 +22,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import React, { useState, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 export default function Admin() {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [modal, setModalRender] = React.useState("add");
@@ -33,6 +34,8 @@ export default function Admin() {
     });
     if (!error) {
       console.log("result berhasil");
+    } else {
+      toast("Success");
     }
   }
 
