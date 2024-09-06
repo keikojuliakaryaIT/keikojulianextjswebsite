@@ -120,7 +120,6 @@ export default function Admin() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
-            className="w-100v"
           >
             <ModalContent>
               {(onClose: any) => (
@@ -131,7 +130,6 @@ export default function Admin() {
                   <ModalBody>
                     <Input
                       autoFocus
-                      className="w-80v max-w-full"
                       classNames={{
                         innerWrapper: "w-[100%]",
                         inputWrapper: "w-[100%]",

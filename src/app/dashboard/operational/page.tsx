@@ -237,16 +237,7 @@ export default function Operational() {
                       items={defaultProducs}
                       label="Choose Product"
                       placeholder="Select an Type"
-                      className="w-70v"
                       selectedKeys={[selectedProduct]}
-                      classNames={{
-                        innerWrapper: "w-[100%]",
-                        listboxWrapper: "w-[100%]",
-                        base: "w-[100%]",
-                        mainWrapper: "w-[100%]",
-                        trigger: "w-[100%]",
-                        popoverContent: "w-[100%]",
-                      }}
                       onChange={handleSelectionChange}
                     >
                       {(product) => (
@@ -316,6 +307,11 @@ export default function Operational() {
                     <Button
                       variant="flat"
                       onPress={pushDataStock}
+											size="lg"
+                      isDisabled={
+                        (!selectedProduct || selectedProduct === "") ||
+                        stockProduct === 0
+                      }
                       className="bg-greenbt text-white"
                     >
                       Add Stock Product
@@ -334,7 +330,6 @@ export default function Operational() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
-            className="w-100v"
           >
             <ModalContent>
               {(onClose: any) => (
@@ -348,16 +343,7 @@ export default function Operational() {
                       items={defaultProducs}
                       label="Choose Product"
                       placeholder="Select an Type"
-                      className="w-70v"
                       selectedKeys={[selectedProduct]}
-                      classNames={{
-                        innerWrapper: "w-[100%]",
-                        listboxWrapper: "w-[100%]",
-                        base: "w-[100%]",
-                        mainWrapper: "w-[100%]",
-                        trigger: "w-[100%]",
-                        popoverContent: "w-[100%]",
-                      }}
                       onChange={handleSelectionChange}
                     >
                       {(product) => (
@@ -369,11 +355,6 @@ export default function Operational() {
                     <Input
                       required={true}
                       autoFocus
-                      className="w-80v max-w-full"
-                      classNames={{
-                        innerWrapper: "w-[100%]",
-                        inputWrapper: "w-[100%]",
-                      }}
                       label="Quantity Product"
                       labelPlacement="outside"
                       type="text"
@@ -430,10 +411,11 @@ export default function Operational() {
                         (!selectedProduct || selectedProduct === "") ||
                         stockProduct === 0
                       }
+											size="lg"
                       onPress={pushDataStockOut}
                       className="bg-greenbt text-white"
                     >
-                      Add Stock Product
+                      Add Stock Out Product
                     </Button>
                   </ModalFooter>
                 </>

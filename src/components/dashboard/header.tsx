@@ -38,7 +38,7 @@ export default function HeaderDashboard() {
           <p className="font-bold text-inherit">Inventaris App</p>
         </NavbarBrand>
       </NavbarContent>
-      <NavbarContent />
+      <NavbarContent/>
       <NavbarMenu>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item.title}-${index}`}>

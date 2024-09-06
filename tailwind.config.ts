@@ -49,7 +49,7 @@ const config: Config = {
       "90v": "90vw",
       "95v": "95vw",
       "100v": "100vw",
-      "full": "100vw",
+      "full": "100%",
     },
   },
   darkMode: "class",

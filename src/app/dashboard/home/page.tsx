@@ -12,6 +12,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Pagination,
   Select,
   SelectItem,
   SortDescriptor,
@@ -31,6 +32,7 @@ import { users } from "./data";
 import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
+import { BsCheckLg } from "react-icons/bs";
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
 type ProductType = {
@@ -58,6 +60,7 @@ export default function HomeDashboard() {
     column: "age",
     direction: "ascending",
   });
+  const [selectedKeys, setSelectedKeys] = React.useState<any>(new Set([]));
   const [product, setProduct] = useState<{
     idProduct: string;
     nameProduct: string;
@@ -80,7 +83,7 @@ export default function HomeDashboard() {
 
   const statusOptions = useMemo(
     () => [
-      { name: "Active", uid: "active" },
+      { name: "Available", uid: "Available" },
       { name: "Paused", uid: "paused" },
       { name: "Vacation", uid: "vacation" },
     ],
@@ -101,7 +104,8 @@ export default function HomeDashboard() {
     []
   );
   const [type, setType] = useState<[{ id: string; type: string }]>();
-  const [defaultProducst, setDefaultProducst] = useState<any>();
+  const [defaultProduct, setDefaultProduct] = useState<any>();
+  const pages = Math.ceil(defaultProduct?.length ?? 1 / rowsPerPage);
 
   const getDataType = useCallback(async () => {
     const { result, error } = await getDataCollection(`Inventory/Admin/Type`);
@@ -118,7 +122,7 @@ export default function HomeDashboard() {
     );
 
     if (!error) {
-      setDefaultProducst(result);
+      setDefaultProduct(result);
     } else {
       return toast("ERROR, Please Try Again !");
     }
@@ -140,11 +144,11 @@ export default function HomeDashboard() {
   const hasSearchFilter = Boolean(filterValue);
 
   const filteredItems = React.useMemo(() => {
-    let filteredUsers = [...(defaultProducst ?? [{}])];
+    let filteredUsers = [...(defaultProduct ?? [{}])];
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
-        user.name.toLowerCase().includes(filterValue.toLowerCase())
+        user.idProduct.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
     if (
@@ -155,10 +159,9 @@ export default function HomeDashboard() {
         Array.from(statusFilter).includes(user.status)
       );
     }
-
     return filteredUsers;
   }, [
-    defaultProducst,
+    defaultProduct,
     hasSearchFilter,
     statusFilter,
     statusOptions.length,
@@ -228,7 +231,7 @@ export default function HomeDashboard() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
-            <Dropdown>
+            <Dropdown classNames={{ content: "w-50v data-[open=true]:bg-red" }}>
               <DropdownTrigger className="hidden sm:flex">
                 <Button
                   endContent={<FaChevronDown className="text-small" />}
@@ -244,9 +247,16 @@ export default function HomeDashboard() {
                 selectedKeys={statusFilter}
                 selectionMode="multiple"
                 onSelectionChange={setStatusFilter}
+                color="primary"
               >
                 {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
+                  <DropdownItem
+                    key={status.uid}
+                    className="capitalize"
+                    selectedIcon={(data) =>
+                      data.isSelected ? <BsCheckLg /> : null
+                    }
+                  >
                     {capitalize(status.name)}
                   </DropdownItem>
                 ))}
@@ -270,7 +280,13 @@ export default function HomeDashboard() {
                 onSelectionChange={setVisibleColumns}
               >
                 {columns.map((column) => (
-                  <DropdownItem key={column.uid} className="capitalize">
+                  <DropdownItem
+                    key={column.uid}
+                    className="capitalize"
+                    selectedIcon={(data) =>
+                      data.isSelected ? <BsCheckLg /> : null
+                    }
+                  >
                     {capitalize(column.name)}
                   </DropdownItem>
                 ))}
@@ -287,7 +303,7 @@ export default function HomeDashboard() {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-default-400 text-small">
-            Total {defaultProducst?.length} Product
+            Total {defaultProduct?.length} Product
           </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
@@ -311,10 +327,33 @@ export default function HomeDashboard() {
     visibleColumns,
     columns,
     openAddModal,
-    defaultProducst?.length,
+    defaultProduct?.length,
     onRowsPerPageChange,
     onClear,
   ]);
+  const bottomContent = React.useMemo(() => {
+    return (
+      <div className="py-2 px-2 flex justify-between items-center">
+        <Pagination
+          showControls
+          classNames={{
+            cursor: "bg-foreground text-background",
+          }}
+          color="default"
+          isDisabled={hasSearchFilter}
+          page={page}
+          total={pages}
+          variant="light"
+          onChange={setPage}
+        />
+        <span className="text-small text-default-400">
+          {selectedKeys === "all"
+            ? "All items selected"
+            : `${selectedKeys.size} of ${items.length} selected`}
+        </span>
+      </div>
+    );
+  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
 
   const addProductStorage = useCallback(async () => {
     const { result, error } = await createData(
@@ -416,7 +455,6 @@ export default function HomeDashboard() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
-            className="max-w-[100vw]"
           >
             <ModalContent>
               {(onClose: any) => (
@@ -427,11 +465,6 @@ export default function HomeDashboard() {
                   <ModalBody>
                     <Input
                       autoFocus
-                      className="w-70v max-w-full"
-                      classNames={{
-                        innerWrapper: "w-[100%]",
-                        inputWrapper: "w-[100%]",
-                      }}
                       label="ID Product"
                       labelPlacement="outside"
                       type="text"
@@ -445,7 +478,6 @@ export default function HomeDashboard() {
                     />
                     <Input
                       label="Product Name"
-                      className="w-70v max-w-full"
                       labelPlacement="outside"
                       type="text"
                       inputMode="numeric"
@@ -456,10 +488,6 @@ export default function HomeDashboard() {
                           return { ...prev, nameProduct: datas };
                         })
                       }
-                      classNames={{
-                        innerWrapper: "w-[100%]  ",
-                        inputWrapper: "w-[100%]",
-                      }}
                     />
                     {/* <Input
 											label="Tanggal Lahir"
@@ -499,16 +527,7 @@ export default function HomeDashboard() {
                       items={type}
                       label="Type Product"
                       placeholder="Select an Type"
-                      className="w-70v"
                       selectedKeys={[product.type]}
-                      classNames={{
-                        innerWrapper: "w-[100%]",
-                        listboxWrapper: "w-[100%]",
-                        base: "w-[100%]",
-                        mainWrapper: "w-[100%]",
-                        trigger: "w-[100%]",
-                        popoverContent: "w-[100%]",
-                      }}
                       onChange={handleSelectionChange}
                     >
                       {(types) => (
@@ -559,14 +578,14 @@ export default function HomeDashboard() {
     return <CircularProgress aria-label="Loading..." />;
   }
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center sm:px-5">
       {renderModal()}
       <Table
         isHeaderSticky
         topContent={topContent}
         topContentPlacement="outside"
-        className="w-80v"
-        classNames={{ wrapper: "w-[100%] " }}
+        bottomContent={bottomContent}
+        bottomContentPlacement="outside"
       >
         <TableHeader columns={headerColumns}>
           {(column) => (
