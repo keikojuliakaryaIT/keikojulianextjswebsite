@@ -8,8 +8,8 @@ import ViewListener from "./route-change-listener";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Keiko Julia Karya",
-  description: "Keiko Julia Karya",
+  title: "Keiko Julia",
+  description: "Keiko Julia",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <head>
         <link rel="icon" href="/Logo.ico" sizes="any" />
       </head>
@@ -30,8 +30,8 @@ export default function RootLayout({
           {/* <Navbar >
 					</Navbar>
 					<Footer /> */}
-          <Toaster position="top-center" />
         </Providers>
+				<Toaster position="top-center" />
       </body>
     </html>
   );

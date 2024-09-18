@@ -22,6 +22,8 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  Textarea,
+  Tooltip,
   useDisclosure,
 } from "@nextui-org/react";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
@@ -33,6 +35,12 @@ import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
 import { BsCheckLg } from "react-icons/bs";
+import { IoMdEye } from "react-icons/io";
+import { FaEdit } from "react-icons/fa";
+import { MdDeleteForever } from "react-icons/md";
+import updateData from "@/components/firebase/updateData";
+import CurrencyInput from "react-currency-input-field";
+
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
 type ProductType = {
@@ -44,9 +52,24 @@ type ProductType = {
   nomor: string;
   notes: string;
   status: string;
-  stock: Number;
+  stock_id: Number;
+  stock_sg: Number;
   type: string;
 }[];
+
+type ProductItem = {
+  idProduct: string;
+  nameProduct: string;
+  type: string;
+  stock_id: Number;
+  stock_sg: Number;
+  description: string;
+  priceSG: number;
+  priceID: number;
+  notes: string;
+  image: string;
+  status: "Available" | "Not Available" | "Out Of Stock";
+};
 
 export default function HomeDashboard() {
   const [onRefresh, setOnRefresh] = useState(false);
@@ -55,27 +78,22 @@ export default function HomeDashboard() {
   const [modal, setModalRender] = React.useState("add");
   const [page, setPage] = React.useState(1);
   const [statusFilter, setStatusFilter] = useState<any>("all");
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: "age",
+    column: "nameProduct",
     direction: "ascending",
   });
   const [selectedKeys, setSelectedKeys] = React.useState<any>(new Set([]));
-  const [product, setProduct] = useState<{
-    idProduct: string;
-    nameProduct: string;
-    type: string;
-    stock: Number;
-    description: string;
-    notes: string;
-    image: string;
-    status: "Available" | "Not Available" | "Out Of Stock";
-  }>({
+  const [selectedItem, setselectedItem] = useState<any>();
+  const [product, setProduct] = useState<ProductItem>({
     idProduct: "",
     nameProduct: "",
     type: "",
-    stock: 0,
+    stock_id: 0,
+    stock_sg: 0,
     description: "",
+    priceSG: 0,
+    priceID: 0,
     notes: "",
     image: "",
     status: "Available",
@@ -105,7 +123,8 @@ export default function HomeDashboard() {
   );
   const [type, setType] = useState<[{ id: string; type: string }]>();
   const [defaultProduct, setDefaultProduct] = useState<any>();
-  const pages = Math.ceil(defaultProduct?.length ?? 1 / rowsPerPage);
+  const pages = Math.ceil(defaultProduct?.length / rowsPerPage);
+  const [location, setlocation] = useState<string>("");
 
   const getDataType = useCallback(async () => {
     const { result, error } = await getDataCollection(`Inventory/Admin/Type`);
@@ -204,8 +223,18 @@ export default function HomeDashboard() {
     setPage(1);
   }, []);
   function openDelete(item: any) {
-    // setchooseUser(item);
+    setselectedItem(item);
     setModalRender("delete");
+    onOpen();
+  }
+  function openDetail(item: any) {
+    setselectedItem(item);
+    setModalRender("detail");
+    onOpen();
+  }
+  function openEdit(item: any) {
+    setselectedItem(item);
+    setModalRender("edit");
     onOpen();
   }
   const openAddModal = useCallback(() => {
@@ -311,9 +340,9 @@ export default function HomeDashboard() {
               className="bg-transparent outline-none text-default-400 text-small"
               onChange={onRowsPerPageChange}
             >
-              <option value="5">5</option>
               <option value="10">10</option>
-              <option value="15">15</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
             </select>
           </label>
         </div>
@@ -346,30 +375,81 @@ export default function HomeDashboard() {
           variant="light"
           onChange={setPage}
         />
-        <span className="text-small text-default-400">
+        <span className="text-small text-default-400 hidden md:flex">
           {selectedKeys === "all"
             ? "All items selected"
             : `${selectedKeys.size} of ${items.length} selected`}
         </span>
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  }, [hasSearchFilter, page, pages, selectedKeys, items.length]);
 
   const addProductStorage = useCallback(async () => {
+    let find = defaultProduct.find(
+      (data: any) => data.idProduct === product.idProduct
+    );
+    if (find) {
+      return toast.warning("Product Already Exist");
+    }
     const { result, error } = await createData(
       `Inventory/Storage/Products`,
       product
     );
     if (!error) {
-      console.log("result berhasil");
+      toast.success("Add Product successful!");
+
+      // setProduct((prev) => {
+      //   return { ...prev, idProduct: "" };
+      // });
     }
-  }, [product]);
+  }, [defaultProduct, product]);
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setProduct((prev) => {
       return { ...prev, type: e.target.value };
     });
   };
+  const handleSelectionChangeEdit = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setselectedItem((prev: any) => {
+      return { ...prev, type: e.target.value };
+    });
+  };
+
+  const deleteProduct = useCallback(async (datas: any) => {
+    let data = { ...datas };
+    let id = data.id;
+    delete data.id;
+    delete data.nomor;
+    data.visible = false;
+    const { result, error } = await updateData(
+      "Inventory/Storage/Products",
+      id,
+      data
+    );
+    if (!error) {
+      toast.success("Delete Product successful!");
+    } else {
+      toast.error("Delete Product failed!");
+    }
+  }, []);
+  const updateProduct = useCallback(async (datas: any) => {
+    let data = { ...datas };
+    let id = data.id;
+    delete data.id;
+    delete data.nomor;
+    const { result, error } = await updateData(
+      "Inventory/Storage/Products",
+      id,
+      data
+    );
+    if (!error) {
+      toast.success("Update Product successful!");
+    } else {
+      toast.error("Update Product failed!");
+    }
+  }, []);
 
   function renderModal() {
     if (modal === "detail") {
@@ -379,19 +459,77 @@ export default function HomeDashboard() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
-            classNames={{ base: "light text-black" }}
+            classNames={{ base: "light text-black max-w-fit" }}
+            scrollBehavior="inside"
           >
             <ModalContent>
               {(onClose: any) => (
                 <>
                   <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Detail Pasien
+                    Detail Products
                   </ModalHeader>
                   <ModalBody>
-                    <p>nama</p>
-                    <p>gender</p>
-                    <p>nik</p>
-                    <p>pekerjaan</p>
+                    <div className="grid grid-cols-3 ">
+                      <p>ID Product</p>
+                      <p className="col-span-2">: {selectedItem?.idProduct}</p>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <p>Name Product</p>
+                      <p className="col-span-2">
+                        : {selectedItem?.nameProduct}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <p>Type Product</p>
+                      <p className="col-span-2">: {selectedItem?.type}</p>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <p>Price SG Product</p>
+                      <p className="col-span-2">
+                        :
+                        <CurrencyInput
+                          readOnly
+                          intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                          value={
+                            selectedItem?.priceSG ? selectedItem?.priceSG : 0
+                          }
+                        />
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <p>Price ID Product</p>
+                      <p className="col-span-2">
+                        :
+                        <CurrencyInput
+                          readOnly
+                          intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                          value={
+                            selectedItem?.priceID ? selectedItem?.priceID : 0
+                          }
+                        />
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 ">
+                      <p>Stock SG Product</p>
+                      <p className="col-span-2">
+                        : {selectedItem?.stock_sg ? selectedItem?.stock_sg : 0}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 ">
+                      <p>Stock ID Product</p>
+                      <p className="col-span-2">
+                        : {selectedItem?.stock_id ? selectedItem?.stock_id : 0}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <p>Description Product &emsp; </p>{" "}
+                      <div className="col-span-2">
+                        <Textarea
+                          isReadOnly
+                          value={selectedItem?.description}
+                        />
+                      </div>
+                    </div>
                   </ModalBody>
                   <ModalFooter>
                     <Button
@@ -421,10 +559,10 @@ export default function HomeDashboard() {
               {(onClose: any) => (
                 <>
                   <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Delete Pasien
+                    Delete Products
                   </ModalHeader>
                   <ModalBody>
-                    <p>Apakah Kamu Yakin Menghapus Data {}</p>
+                    <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p>
                   </ModalBody>
                   <ModalFooter>
                     <Button
@@ -436,10 +574,139 @@ export default function HomeDashboard() {
                     </Button>
                     <Button
                       variant="solid"
-                      // onPress={}
+                      onPress={() => deleteProduct(selectedItem)}
                       className="bg-red-600 text-white"
                     >
                       Hapus
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </>
+      );
+    } else if (modal === "edit") {
+      return (
+        <>
+          <Modal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            placement="top-center"
+            scrollBehavior="inside"
+          >
+            <ModalContent>
+              {(onClose: any) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                    Edit Product
+                  </ModalHeader>
+                  <ModalBody>
+                    <Input
+                      isRequired
+                      autoFocus
+                      label="ID Product"
+                      labelPlacement="outside"
+                      type="text"
+                      variant="bordered"
+                      value={selectedItem?.idProduct}
+                      onValueChange={(datas) =>
+                        setselectedItem((prev: any) => {
+                          return { ...prev, idProduct: datas };
+                        })
+                      }
+                    />
+                    <Input
+                      isRequired
+                      label="Product Name"
+                      labelPlacement="outside"
+                      type="text"
+                      inputMode="numeric"
+                      variant="bordered"
+                      value={selectedItem?.nameProduct}
+                      onValueChange={(datas) =>
+                        setselectedItem((prev: any) => {
+                          return { ...prev, nameProduct: datas };
+                        })
+                      }
+                    />
+                    <Select
+                      isRequired
+                      items={type}
+                      label="Type Product"
+                      placeholder="Select an Type"
+                      selectedKeys={[selectedItem!.type]}
+                      onChange={handleSelectionChangeEdit}
+                    >
+                      {(types) => (
+                        <SelectItem key={types?.type}>{types?.type}</SelectItem>
+                      )}
+                    </Select>
+                    <h2>SG Price</h2>
+                    <CurrencyInput
+                      id="input-example"
+                      name="Price"
+                      intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                      placeholder="Please enter price"
+                      className="bg-gray-100 py-2 px-1 rounded-md"
+                      // defaultValue={1000}
+                      // // decimalsLimit={2}
+                      value={selectedItem.priceSG}
+                      onValueChange={(value, name, values) =>
+                        setselectedItem((prev: any) => {
+                          return {
+                            ...prev,
+                            priceSG: Number(value !== undefined ? value : 0),
+                          };
+                        })
+                      }
+                    />
+                    <h2>IND Price</h2>
+                    <CurrencyInput
+                      id="input-example"
+                      name="Price"
+                      intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                      placeholder="Please enter price"
+                      className="bg-gray-100 py-2 px-1 rounded-md"
+                      // defaultValue={1000}
+                      // // decimalsLimit={2}
+                      value={selectedItem.priceID}
+                      onValueChange={(value, name, values) =>
+                        setselectedItem((prev: any) => {
+                          return {
+                            ...prev,
+                            priceID: Number(value !== undefined ? value : 0),
+                          };
+                        })
+                      }
+                    />
+
+                    <Textarea
+                      // isRequired
+                      label="Description"
+                      labelPlacement="outside"
+                      placeholder="Enter your description"
+                      // className="max-w-xs"
+                      value={selectedItem?.description}
+                      onValueChange={(datas) =>
+                        setselectedItem((prev: any) => {
+                          return { ...prev, description: datas };
+                        })
+                      }
+                    />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      variant="flat"
+                      onPress={() => updateProduct(selectedItem)}
+                      isDisabled={
+                        !selectedItem?.idProduct ||
+                        !selectedItem?.nameProduct ||
+                        !selectedItem?.type
+                      }
+                      className="bg-greenbt text-white"
+                    >
+                      Edit Product
                     </Button>
                   </ModalFooter>
                 </>
@@ -455,6 +722,7 @@ export default function HomeDashboard() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
+            scrollBehavior="inside"
           >
             <ModalContent>
               {(onClose: any) => (
@@ -464,6 +732,7 @@ export default function HomeDashboard() {
                   </ModalHeader>
                   <ModalBody>
                     <Input
+                      isRequired
                       autoFocus
                       label="ID Product"
                       labelPlacement="outside"
@@ -477,6 +746,7 @@ export default function HomeDashboard() {
                       }
                     />
                     <Input
+                      isRequired
                       label="Product Name"
                       labelPlacement="outside"
                       type="text"
@@ -489,41 +759,8 @@ export default function HomeDashboard() {
                         })
                       }
                     />
-                    {/* <Input
-											label="Tanggal Lahir"
-											labelPlacement='outside'
-											type="text"
-											inputMode='text'
-											variant="bordered"
-											value={lahir}
-											onValueChange={setlahir}
-										/> */}
-                    {/* <Select
-                      classNames={{ base: "light" }}
-                      label="Jenis Kelamin"
-                      placeholder="Pilih Jenis Kelamin"
-                      className="mt-5 bg-gray-100"
-                      selectedKeys={[kelamin]}
-                      onChange={handleSelectionChange}
-                    >
-                      <SelectItem
-                        key={"pria"}
-                        value={"Pria"}
-                        classNames={{ base: "light" }}
-                        className="text-white"
-                      >
-                        Pria
-                      </SelectItem>
-                      <SelectItem
-                        key={"wanita"}
-                        value={"Perempuan"}
-                        classNames={{ base: "light" }}
-                        className="text-white"
-                      >
-                        Perempuan
-                      </SelectItem>
-                    </Select> */}
                     <Select
+                      isRequired
                       items={type}
                       label="Type Product"
                       placeholder="Select an Type"
@@ -534,32 +771,93 @@ export default function HomeDashboard() {
                         <SelectItem key={types?.type}>{types?.type}</SelectItem>
                       )}
                     </Select>
+                    <h2>SG Price</h2>
+                    <CurrencyInput
+                      id="input-example"
+                      name="Price"
+                      intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                      placeholder="Please enter price"
+                      className="bg-gray-100 py-2 px-1 rounded-md"
+                      // defaultValue={1000}
+                      // // decimalsLimit={2}
+                      value={product.priceSG}
+                      onValueChange={(value, name, values) =>
+                        setProduct((prev) => {
+                          return {
+                            ...prev,
+                            priceSG: Number(value !== undefined ? value : 0),
+                          };
+                        })
+                      }
+                    />
+                    <h2>IND Price</h2>
+                    <CurrencyInput
+                      id="input-example"
+                      name="Price"
+                      intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                      placeholder="Please enter price"
+                      className="bg-gray-100 py-2 px-1 rounded-md"
+                      // defaultValue={1000}
+                      // // decimalsLimit={2}
+                      value={product.priceID}
+                      onValueChange={(value, name, values) =>
+                        setProduct((prev) => {
+                          return {
+                            ...prev,
+                            priceID: Number(value !== undefined ? value : 0),
+                          };
+                        })
+                      }
+                    />
+
                     {/* <Input
-                      label="Stock"
+                      label="Price"
                       className="w-70v"
                       labelPlacement="outside"
                       type="text"
                       inputMode="numeric"
                       variant="bordered"
-                      value={stock.toString()}
-                      onValueChange={(data) => setStock(Number(data))}
-                      classNames={{
-                        innerWrapper: "w-[100%]  ",
-                        inputWrapper: "w-[100%]",
-                      }}
+                      value={currencyFormat(product.price)}
+                      onValueChange={(datas) =>
+                        setProduct((prev) => {
+                          return { ...prev, price: Number(reverseFormatNumber(datas)) };
+                        })
+                      }
                     /> */}
+                    <Textarea
+                      label="Description"
+                      labelPlacement="outside"
+                      placeholder="Enter your description"
+                      // className="max-w-xs"
+                      value={product.description}
+                      onValueChange={(datas) =>
+                        setProduct((prev) => {
+                          return { ...prev, description: datas };
+                        })
+                      }
+                    />
+										<Textarea
+                      label="Notes"
+                      labelPlacement="outside"
+                      placeholder="Enter your Notes"
+                      // className="max-w-xs"
+                      value={product.notes}
+                      onValueChange={(datas) =>
+                        setProduct((prev) => {
+                          return { ...prev, notes: datas };
+                        })
+                      }
+                    />
                   </ModalBody>
                   <ModalFooter>
-                    {/* <Button
-                      variant="flat"
-                      onPress={simpanDataPasienBaru}
-                      className="bg-bluebt text-white"
-                    >
-                      Simpan
-                    </Button> */}
                     <Button
                       variant="flat"
                       onPress={addProductStorage}
+                      isDisabled={
+                        !product.idProduct ||
+                        !product.nameProduct ||
+                        !product.type
+                      }
                       className="bg-greenbt text-white"
                     >
                       Add Product
@@ -574,38 +872,106 @@ export default function HomeDashboard() {
     }
   }
 
+  type propsBody = {
+    item: any;
+    columnKey: any;
+    onDetail: (items: any) => void;
+    onEdit: (items: any) => void;
+    onDelete: (items: any) => void;
+  };
+  const renderBody = useCallback(
+    ({ item, columnKey, onDetail, onEdit, onDelete }: propsBody) => {
+      const cellValue = item[columnKey];
+      switch (columnKey) {
+        case "stock":
+          return (
+            <p>
+              {(item?.stock_id ? item?.stock_id : 0) +
+                (item?.stock_sg ? item?.stock_sg : 0)}
+            </p>
+          );
+        case "actions":
+          return (
+            <div className="relative flex items-center gap-2">
+              <Tooltip content="Details">
+                <span
+                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                  onClick={() => onDetail(item)}
+                >
+                  <IoMdEye />
+                </span>
+              </Tooltip>
+              <Tooltip content="Edit user">
+                <span
+                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                  onClick={() => onEdit(item)}
+                >
+                  <FaEdit />
+                </span>
+              </Tooltip>
+              <Tooltip color="danger" content="Delete user">
+                <span
+                  className="text-lg text-danger cursor-pointer active:opacity-50"
+                  onClick={() => onDelete(item)}
+                >
+                  <MdDeleteForever />
+                </span>
+              </Tooltip>
+            </div>
+          );
+
+        default:
+          return cellValue;
+      }
+    },
+    []
+  );
+
   if (onRefresh) {
     return <CircularProgress aria-label="Loading..." />;
+  } else {
+    return (
+      <div className="flex justify-center items-center sm:px-5">
+        {renderModal()}
+        <Table
+          isHeaderSticky
+          topContent={topContent}
+          topContentPlacement="outside"
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          sortDescriptor={sortDescriptor}
+          onSortChange={setSortDescriptor}
+        >
+          <TableHeader columns={headerColumns}>
+            {(column) => (
+              <TableColumn
+                key={column?.uid}
+                align={column?.uid === "actions" ? "center" : "start"}
+                allowsSorting={column?.sortable}
+              >
+                {column?.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={"No users found"} items={sortedItems}>
+            {(item) => (
+              <TableRow key={item.id ?? "Table Row"}>
+                {(columnKey) => (
+                  <TableCell>
+                    {renderBody({
+                      item: item,
+                      columnKey: columnKey,
+                      onDelete: (item) => openDelete(item),
+                      onDetail: (item) => openDetail(item),
+                      onEdit: (item) => openEdit(item),
+                    })}
+                  </TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
   }
-  return (
-    <div className="flex justify-center items-center sm:px-5">
-      {renderModal()}
-      <Table
-        isHeaderSticky
-        topContent={topContent}
-        topContentPlacement="outside"
-        bottomContent={bottomContent}
-        bottomContentPlacement="outside"
-      >
-        <TableHeader columns={headerColumns}>
-          {(column) => (
-            <TableColumn
-              key={column?.uid}
-              align={column?.uid === "actions" ? "center" : "start"}
-              allowsSorting={column?.sortable}
-            >
-              {column?.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody emptyContent={"No users found"} items={sortedItems}>
-          {(item) => (
-            <TableRow key={"test"}>
-              {(columnKey) => <TableCell>{item[columnKey]}</TableCell>}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
 }
