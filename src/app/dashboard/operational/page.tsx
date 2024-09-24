@@ -225,7 +225,7 @@ export default function Operational() {
           setselectedStaff(undefined);
           setNotes("");
           setSelectedLocation(undefined);
-					setSelectedCategory(undefined);
+          setSelectedCategory(undefined);
           setPrice(0);
           toast.success("Add Stock Out Succesful");
           setStockProduct(0);
@@ -490,6 +490,8 @@ export default function Operational() {
                             <CurrencyInput
                               value={price}
                               intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                              defaultValue={0}
+                              decimalsLimit={2}
                               placeholder="Please enter price"
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>
@@ -715,6 +717,8 @@ export default function Operational() {
                             <CurrencyInput
                               value={price}
                               intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                              defaultValue={0}
+                              decimalsLimit={2}
                               placeholder="Please enter price"
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>

@@ -490,6 +490,8 @@ export default function HomeDashboard() {
                         <CurrencyInput
                           readOnly
                           intlConfig={{ locale: "en-SG", currency: "SGD" }}
+													defaultValue={0}
+													decimalsLimit={2}
                           value={
                             selectedItem?.priceSG ? selectedItem?.priceSG : 0
                           }
@@ -648,6 +650,8 @@ export default function HomeDashboard() {
                       name="Price"
                       intlConfig={{ locale: "en-SG", currency: "SGD" }}
                       placeholder="Please enter price"
+                      defaultValue={0}
+                      decimalsLimit={2}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -668,6 +672,7 @@ export default function HomeDashboard() {
                       intlConfig={{ locale: "id-ID", currency: "IDR" }}
                       placeholder="Please enter price"
                       className="bg-gray-100 py-2 px-1 rounded-md"
+                      defaultValue={0}
                       // defaultValue={1000}
                       // // decimalsLimit={2}
                       value={selectedItem.priceID}
@@ -777,6 +782,8 @@ export default function HomeDashboard() {
                       name="Price"
                       intlConfig={{ locale: "en-SG", currency: "SGD" }}
                       placeholder="Please enter price"
+                      defaultValue={0}
+                      decimalsLimit={2}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -796,6 +803,7 @@ export default function HomeDashboard() {
                       name="Price"
                       intlConfig={{ locale: "id-ID", currency: "IDR" }}
                       placeholder="Please enter price"
+                      defaultValue={0}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -836,7 +844,7 @@ export default function HomeDashboard() {
                         })
                       }
                     />
-										<Textarea
+                    <Textarea
                       label="Notes"
                       labelPlacement="outside"
                       placeholder="Enter your Notes"
