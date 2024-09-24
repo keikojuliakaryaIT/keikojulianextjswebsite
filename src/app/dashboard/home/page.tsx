@@ -52,8 +52,8 @@ type ProductType = {
   nomor: string;
   notes: string;
   status: string;
-  stock_id: Number;
-  stock_sg: Number;
+  stock_id: number;
+  stock_sg: number;
   type: string;
 }[];
 
@@ -61,10 +61,10 @@ type ProductItem = {
   idProduct: string;
   nameProduct: string;
   type: string;
-  stock_id: Number;
-  stock_sg: Number;
+  stock_id: number;
+  stock_sg: number;
   description: string;
-  priceSG: number;
+  priceSG: string | number;
   priceID: number;
   notes: string;
   image: string;
@@ -167,7 +167,7 @@ export default function HomeDashboard() {
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
-        user.idProduct.toLowerCase().includes(filterValue.toLowerCase())
+        user?.idProduct?.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
     if (
@@ -391,9 +391,11 @@ export default function HomeDashboard() {
     if (find) {
       return toast.warning("Product Already Exist");
     }
+		var  data = {...product};
+		data.priceSG = Number(data.priceSG);
     const { result, error } = await createData(
       `Inventory/Storage/Products`,
-      product
+      data
     );
     if (!error) {
       toast.success("Add Product successful!");
@@ -439,6 +441,7 @@ export default function HomeDashboard() {
     let id = data.id;
     delete data.id;
     delete data.nomor;
+		data.priceSG = Number(data.priceSG);
     const { result, error } = await updateData(
       "Inventory/Storage/Products",
       id,
@@ -784,6 +787,8 @@ export default function HomeDashboard() {
                       placeholder="Please enter price"
                       defaultValue={0}
                       decimalsLimit={2}
+											allowDecimals={true}
+											step={1}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -792,7 +797,7 @@ export default function HomeDashboard() {
                         setProduct((prev) => {
                           return {
                             ...prev,
-                            priceSG: Number(value !== undefined ? value : 0),
+                            priceSG: (value !== undefined ? value : 0),
                           };
                         })
                       }

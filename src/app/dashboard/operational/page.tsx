@@ -109,7 +109,7 @@ export default function Operational() {
   const [selectedPlatform, setSelectedPlatform] = useState<any>();
   const [selectedLocation, setSelectedLocation] = useState<any>();
   const [stockProduct, setStockProduct] = useState(0);
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState<string|number>(0);
   const [notes, setNotes] = useState("");
 
   async function pushDataStock() {
@@ -128,7 +128,7 @@ export default function Operational() {
         ArrivalData: arrivalDate.toDate("Asia/Singapore").valueOf(),
         statusProduct: selectedStatus,
         note: notes,
-        price: price,
+        price: Number(price),
       });
       if (!error) {
         delete findData.id;
@@ -195,7 +195,7 @@ export default function Operational() {
         PIC: selectedStaff,
         OrderData: orderDate.toDate("Asia/Singapore").valueOf(),
         ArrivalData: arrivalDate.toDate("Asia/Singapore").valueOf(),
-        price: price,
+        price: Number(price),
         note: notes,
       });
       if (!error) {
@@ -496,7 +496,7 @@ export default function Operational() {
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>
                                 setPrice(
-                                  Number(value !== undefined ? value : 0)
+                                  (value !== undefined ? value : 0)
                                 )
                               }
                             />
@@ -723,7 +723,7 @@ export default function Operational() {
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>
                                 setPrice(
-                                  Number(value !== undefined ? value : 0)
+                                  (value !== undefined ? value : 0)
                                 )
                               }
                             />
