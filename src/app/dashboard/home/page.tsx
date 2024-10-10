@@ -195,13 +195,17 @@ export default function HomeDashboard() {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = React.useMemo(() => {
-    return [...items].sort((a: ProductType, b: ProductType) => {
-      const first = a[sortDescriptor.column as keyof ProductType] as number;
-      const second = b[sortDescriptor.column as keyof ProductType] as number;
-      const cmp = first < second ? -1 : first > second ? 1 : 0;
-      return sortDescriptor.direction === "descending" ? -cmp : cmp;
-    });
-  }, [sortDescriptor, items]);
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return [...filteredItems]
+      .sort((a: ProductType, b: ProductType) => {
+        const first = a[sortDescriptor.column as keyof ProductType] as number;
+        const second = b[sortDescriptor.column as keyof ProductType] as number;
+        const cmp = first < second ? -1 : first > second ? 1 : 0;
+        return sortDescriptor.direction === "descending" ? -cmp : cmp;
+      })
+      .slice(start, end);
+  }, [filteredItems, page, rowsPerPage, sortDescriptor.column, sortDescriptor.direction]);
 
   const onClear = useCallback(() => {
     setFilterValue("");
@@ -391,8 +395,8 @@ export default function HomeDashboard() {
     if (find) {
       return toast.warning("Product Already Exist");
     }
-		var  data = {...product};
-		data.priceSG = Number(data.priceSG);
+    var data = { ...product };
+    data.priceSG = Number(data.priceSG);
     const { result, error } = await createData(
       `Inventory/Storage/Products`,
       data
@@ -441,7 +445,7 @@ export default function HomeDashboard() {
     let id = data.id;
     delete data.id;
     delete data.nomor;
-		data.priceSG = Number(data.priceSG);
+    data.priceSG = Number(data.priceSG);
     const { result, error } = await updateData(
       "Inventory/Storage/Products",
       id,
@@ -493,8 +497,8 @@ export default function HomeDashboard() {
                         <CurrencyInput
                           readOnly
                           intlConfig={{ locale: "en-SG", currency: "SGD" }}
-													defaultValue={0}
-													decimalsLimit={2}
+                          defaultValue={0}
+                          decimalsLimit={2}
                           value={
                             selectedItem?.priceSG ? selectedItem?.priceSG : 0
                           }
@@ -787,8 +791,8 @@ export default function HomeDashboard() {
                       placeholder="Please enter price"
                       defaultValue={0}
                       decimalsLimit={2}
-											allowDecimals={true}
-											step={1}
+                      allowDecimals={true}
+                      step={1}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -797,7 +801,7 @@ export default function HomeDashboard() {
                         setProduct((prev) => {
                           return {
                             ...prev,
-                            priceSG: (value !== undefined ? value : 0),
+                            priceSG: value !== undefined ? value : 0,
                           };
                         })
                       }
@@ -866,10 +870,7 @@ export default function HomeDashboard() {
                     <Button
                       variant="flat"
                       onPress={addProductStorage}
-                      isDisabled={
-                        !product.idProduct  ||
-                        !product.type
-                      }
+                      isDisabled={!product.idProduct || !product.type}
                       className="bg-greenbt text-white"
                     >
                       Add Product
