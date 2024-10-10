@@ -867,8 +867,7 @@ export default function HomeDashboard() {
                       variant="flat"
                       onPress={addProductStorage}
                       isDisabled={
-                        !product.idProduct ||
-                        !product.nameProduct ||
+                        !product.idProduct  ||
                         !product.type
                       }
                       className="bg-greenbt text-white"
