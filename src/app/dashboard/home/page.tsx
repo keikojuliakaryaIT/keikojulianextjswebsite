@@ -40,7 +40,6 @@ import { FaEdit } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import updateData from "@/components/firebase/updateData";
 import CurrencyInput from "react-currency-input-field";
-
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
 type ProductType = {
