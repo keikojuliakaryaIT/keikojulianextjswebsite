@@ -64,7 +64,7 @@ type ProductItem = {
   stock_sg: number;
   description: string;
   priceSG: string | number;
-  priceID: number;
+  priceID: string | number;
   notes: string;
   image: string;
   status: "Available" | "Not Available" | "Out Of Stock";
@@ -91,8 +91,8 @@ export default function HomeDashboard() {
     stock_id: 0,
     stock_sg: 0,
     description: "",
-    priceSG: 0,
-    priceID: 0,
+    priceSG: "",
+    priceID: "",
     notes: "",
     image: "",
     status: "Available",
@@ -204,7 +204,13 @@ export default function HomeDashboard() {
         return sortDescriptor.direction === "descending" ? -cmp : cmp;
       })
       .slice(start, end);
-  }, [filteredItems, page, rowsPerPage, sortDescriptor.column, sortDescriptor.direction]);
+  }, [
+    filteredItems,
+    page,
+    rowsPerPage,
+    sortDescriptor.column,
+    sortDescriptor.direction,
+  ]);
 
   const onClear = useCallback(() => {
     setFilterValue("");
@@ -396,6 +402,7 @@ export default function HomeDashboard() {
     }
     var data = { ...product };
     data.priceSG = Number(data.priceSG);
+    data.priceID = Number(data.priceID);
     const { result, error } = await createData(
       `Inventory/Storage/Products`,
       data
@@ -445,6 +452,7 @@ export default function HomeDashboard() {
     delete data.id;
     delete data.nomor;
     data.priceSG = Number(data.priceSG);
+    data.priceID = Number(data.priceID);
     const { result, error } = await updateData(
       "Inventory/Storage/Products",
       id,
@@ -668,7 +676,7 @@ export default function HomeDashboard() {
                         setselectedItem((prev: any) => {
                           return {
                             ...prev,
-                            priceSG: Number(value !== undefined ? value : 0),
+                            priceSG: value !== undefined ? value : 0,
                           };
                         })
                       }
@@ -691,7 +699,7 @@ export default function HomeDashboard() {
                         setselectedItem((prev: any) => {
                           return {
                             ...prev,
-                            priceID: Number(value !== undefined ? value : 0),
+                            priceID: value !== undefined ? value : 0,
                           };
                         })
                       }
