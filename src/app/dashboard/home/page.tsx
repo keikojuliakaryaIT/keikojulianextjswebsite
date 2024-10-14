@@ -658,6 +658,8 @@ export default function HomeDashboard() {
                       placeholder="Please enter price"
                       defaultValue={0}
                       decimalsLimit={2}
+                      allowDecimals={true}
+                      step={1}
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       // defaultValue={1000}
                       // // decimalsLimit={2}
@@ -679,6 +681,9 @@ export default function HomeDashboard() {
                       placeholder="Please enter price"
                       className="bg-gray-100 py-2 px-1 rounded-md"
                       defaultValue={0}
+                      decimalsLimit={2}
+                      allowDecimals={true}
+                      step={1}
                       // defaultValue={1000}
                       // // decimalsLimit={2}
                       value={selectedItem.priceID}
