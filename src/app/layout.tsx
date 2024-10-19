@@ -5,8 +5,6 @@ import { Providers } from "./provider";
 import { Toaster } from "sonner";
 import { StoreProvider } from "./StoreProvider";
 import ViewListener from "./route-change-listener";
-import { Provider } from "react-redux";
-import { store } from "@/redux/store";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
