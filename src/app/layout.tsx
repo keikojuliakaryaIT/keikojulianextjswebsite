@@ -5,6 +5,8 @@ import { Providers } from "./provider";
 import { Toaster } from "sonner";
 import { StoreProvider } from "./StoreProvider";
 import ViewListener from "./route-change-listener";
+import { Provider } from "react-redux";
+import { store } from "@/redux/store";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -23,15 +25,15 @@ export default function RootLayout({
         <link rel="icon" href="/Logo.ico" sizes="any" />
       </head>
       <body className={inter.className}>
-        <Providers>
-          <StoreProvider>
-            <ViewListener>{children}</ViewListener>
-          </StoreProvider>
-          {/* <Navbar >
+          <Providers>
+            <StoreProvider>
+              <ViewListener>{children}</ViewListener>
+            </StoreProvider>
+            {/* <Navbar >
 					</Navbar>
 					<Footer /> */}
-        </Providers>
-				<Toaster position="top-center" />
+          </Providers>
+          <Toaster position="top-center" />
       </body>
     </html>
   );

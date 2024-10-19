@@ -58,6 +58,12 @@ function Login() {
       // return console.log("error ", error);
       return toast("ERROR, Please Try Again !");
     }
+    if (email === "keikojuliapos@keikojulia.com") {
+      setloaded(false);
+      toast("Success, Welcome");
+      // else successful
+      return router.push("/keikopos/home");
+    }
 
     setloaded(false);
     toast("Success, Welcome");
