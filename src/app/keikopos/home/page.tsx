@@ -1,10 +1,25 @@
 "use client";
 import getDataCollection from "@/components/firebase/getDataCollection";
-import { addCart, changeStock } from "@/components/lib/features/cart/slice";
+import {
+  addCart,
+  changeStock,
+  deleteStock,
+} from "@/components/lib/features/cart/slice";
 import { useAppDispatch, useAppSelector } from "@/components/lib/hooks";
-import { Button, Input, Pagination } from "@nextui-org/react";
+import {
+  Button,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Pagination,
+  useDisclosure,
+} from "@nextui-org/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaPlus, FaSearch } from "react-icons/fa";
+import { MdDeleteForever } from "react-icons/md";
 import { toast } from "sonner";
 
 export default function HomePos() {
@@ -17,6 +32,9 @@ export default function HomePos() {
   const [search, setSearch] = useState("");
   const dispatch = useAppDispatch();
   const carts = useAppSelector((state) => state.cart.items);
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [modalMode, setmodalMode] = useState<"delete" | "create">("delete");
+  const [selectedItem, setselectedItem] = useState<any>();
 
   const getDataProducts = useCallback(async () => {
     const { result, error } = await getDataCollection(
@@ -24,8 +42,11 @@ export default function HomePos() {
     );
 
     if (!error) {
-      setDefaultProduct(result);
-      setShowProduct(result);
+      let sortingData = result.sort(
+        (data1: any, data2: any) => data2.stock_sg - data1.stock_sg
+      );
+      setDefaultProduct(sortingData);
+      setShowProduct(sortingData);
     } else {
       return toast("ERROR, Please Try Again !");
     }
@@ -79,9 +100,53 @@ export default function HomePos() {
       dispatch(changeStock({ index, value }));
     }
   }
+  function alertDelete(data: any) {
+    setselectedItem(data);
+    setmodalMode("delete");
+    onOpen();
+  }
+  function onDeleteStock(data: any) {
+    dispatch(deleteStock(data));
+    onClose();
+    toast.success("Delete Product Success", {
+      duration: 1000,
+    });
+  }
 
   return (
     <div className="flex w-full px-5">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              {modalMode === "delete" ? (
+                <>
+                  <ModalHeader className="flex flex-col gap-1">
+                    Are You Sure?
+                  </ModalHeader>
+                  <ModalBody>
+                    <p>
+                      Delete {selectedItem?.idProduct}-
+                      {selectedItem?.nameProduct} From cart?
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancel
+                    </Button>
+                    <Button
+                      color="danger"
+                      onPress={() => onDeleteStock(selectedItem)}
+                    >
+                      Delete
+                    </Button>
+                  </ModalFooter>
+                </>
+              ) : null}
+            </>
+          )}
+        </ModalContent>
+      </Modal>
       <div className="w-[60%]">
         <Input
           type="search"
@@ -139,7 +204,10 @@ export default function HomePos() {
                   <p>{data.idProduct}</p>
                   <p>Stock : {data.stock_sg ?? 0}</p>
                 </div>
-                <div className="flex flex-row gap-2 justify-center items-center">
+                <div className="flex flex-row gap-2 justify-center items-end gap-x-4">
+                  <button onClick={() => alertDelete(data)}>
+                    <MdDeleteForever className="text-center mb-1" size={24} />
+                  </button>
                   <Input
                     type="number"
                     label="Quantity"
@@ -169,7 +237,12 @@ export default function HomePos() {
           })}
         </div>
         <div>
-          <Button fullWidth radius="sm" color="primary">
+          <Button
+            fullWidth
+            radius="sm"
+            color="primary"
+            isDisabled={carts?.length === 0}
+          >
             Continue Too Payment
           </Button>
         </div>

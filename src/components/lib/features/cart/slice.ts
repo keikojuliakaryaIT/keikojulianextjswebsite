@@ -27,13 +27,20 @@ export const cartSlice = createSlice({
       temp[action.payload?.index].stockOut = Number(action.payload?.value);
       state.items = temp;
     },
+    deleteStock: (state, action: PayloadAction<any>) => {
+      let temp = state.items?.filter((data) => {
+        return data.idProduct !== action.payload?.idProduct;
+      });
+      state.items = temp;
+    },
     clearCart: (state) => {
       state.items = [];
     },
   },
 });
 
-export const { addCart, clearCart, changeStock } = cartSlice.actions;
+export const { addCart, clearCart, changeStock, deleteStock } =
+  cartSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 

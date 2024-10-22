@@ -35,11 +35,14 @@ import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
 import { BsCheckLg } from "react-icons/bs";
-import { IoMdEye } from "react-icons/io";
+import { IoMdBarcode, IoMdEye } from "react-icons/io";
 import { FaEdit } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import updateData from "@/components/firebase/updateData";
 import CurrencyInput from "react-currency-input-field";
+import html2canvas from "html2canvas";
+import { ReactBarcode } from "react-jsbarcode";
+
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
 type ProductType = {
@@ -239,6 +242,11 @@ export default function HomeDashboard() {
   function openDetail(item: any) {
     setselectedItem(item);
     setModalRender("detail");
+    onOpen();
+  }
+  function openBarcode(item: any) {
+    setselectedItem(item);
+    setModalRender("barcode");
     onOpen();
   }
   function openEdit(item: any) {
@@ -465,6 +473,19 @@ export default function HomeDashboard() {
     }
   }, []);
 
+  const handleDownloadBarcode = async (item: any) => {
+    const element = document.getElementById("printbarcode")!,
+      canvas = await html2canvas(element),
+      data = canvas.toDataURL("image/jpg"),
+      link = document.createElement("a");
+
+    link.href = data;
+    link.download = `barcode-${item?.idProduct}.jpg`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   function renderModal() {
     if (modal === "detail") {
       return (
@@ -739,6 +760,63 @@ export default function HomeDashboard() {
           </Modal>
         </>
       );
+    } else if (modal === "barcode") {
+      return (
+        <>
+          <Modal
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            placement="top-center"
+            classNames={{ base: "light text-black",wrapper:'min-h-fit' ,body:'min-h-fit'}}
+						scrollBehavior="inside"
+          >
+            <ModalContent>
+              {(onClose: any) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white min-w-fit min-h-fit">
+                    Barcode
+                  </ModalHeader>
+                  <ModalBody>
+                    <div id="printbarcode" className="max-w-fit">
+                      <ReactBarcode
+                        value={selectedItem?.idProduct}
+												// style={{alignItems:'center',alignSelf:'center'}}
+                        // renderer="image"
+                      />
+                      {/* <Barcode
+                        value={"131251231251"}
+                        // textPosition="center"
+												// displayValue={false}
+                        format={selectedItem?.idProduct===12 ?"UPC":"UPC"}
+                        textAlign="center"
+                        // ean128={true}
+                        renderer="img"
+                      /> */}
+                    </div>
+                    {/* <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p> */}
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      variant="flat"
+                      onPress={onClose}
+                      className="bg-bluebt text-white"
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      variant="solid"
+                      onPress={() => handleDownloadBarcode(selectedItem)}
+                      className="bg-red-600 text-white"
+                    >
+                      Download
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </>
+      );
     } else {
       return (
         <>
@@ -901,11 +979,12 @@ export default function HomeDashboard() {
     item: any;
     columnKey: any;
     onDetail: (items: any) => void;
+    onBarcode: (items: any) => void;
     onEdit: (items: any) => void;
     onDelete: (items: any) => void;
   };
   const renderBody = useCallback(
-    ({ item, columnKey, onDetail, onEdit, onDelete }: propsBody) => {
+    ({ item, columnKey, onDetail, onEdit, onDelete, onBarcode }: propsBody) => {
       const cellValue = item[columnKey];
       switch (columnKey) {
         case "stock":
@@ -918,6 +997,14 @@ export default function HomeDashboard() {
         case "actions":
           return (
             <div className="relative flex items-center gap-2">
+              <Tooltip content="Barcode">
+                <span
+                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                  onClick={() => onBarcode(item)}
+                >
+                  <IoMdBarcode />
+                </span>
+              </Tooltip>
               <Tooltip content="Details">
                 <span
                   className="text-lg text-default-400 cursor-pointer active:opacity-50"
@@ -988,6 +1075,7 @@ export default function HomeDashboard() {
                       columnKey: columnKey,
                       onDelete: (item) => openDelete(item),
                       onDetail: (item) => openDetail(item),
+                      onBarcode: (item) => openBarcode(item),
                       onEdit: (item) => openEdit(item),
                     })}
                   </TableCell>

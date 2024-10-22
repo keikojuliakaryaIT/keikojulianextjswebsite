@@ -2,6 +2,7 @@
 import HeaderDashboard from "@/components/dashboard/header";
 import { AuthContextProvider } from "@/components/firebase/AuthContext";
 import { Image, Link } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 export default function DashboardLayout({
@@ -9,6 +10,7 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
   const menuItems = [
     { title: "Home", href: "home" },
     { title: "Admin", href: "admin" },
@@ -21,11 +23,16 @@ export default function DashboardLayout({
           <HeaderDashboard />
         </div>
         <div className="sm:flex justify-between hidden px-5 py-5 sticky">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            
-          </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
           <div>
-            <Image src="/logoResize.png" alt="Keiko Julia Logo" width={100} className="" />
+            <button type="button" onClick={() => router.replace("/")}>
+              <Image
+                src="/logoResize.png"
+                alt="Keiko Julia Logo"
+                width={100}
+                className=""
+              />
+            </button>
           </div>
           <div className="flex flex-row">
             {menuItems.map((item, index) => (

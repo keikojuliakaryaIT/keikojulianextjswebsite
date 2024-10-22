@@ -16,6 +16,7 @@
     "axios": "^1.7.5",
     "firebase": "^10.13.0",
     "framer-motion": "^11.3.30",
+    "html2canvas": "^1.4.1",
     "next": "14.2.7",
     "next-themes": "^0.3.0",
     "react": "^18",
@@ -23,6 +24,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.53.0",
     "react-icons": "^5.3.0",
+    "react-jsbarcode": "^1.0.1",
     "react-redux": "^9.1.2",
     "react-toastify": "^10.0.5",
     "sonner": "^1.5.0"
