@@ -14,7 +14,8 @@ export default function Home() {
   const company = useAppSelector((state) => state.cart?.companyPayment);
   useEffect(() => {
     setisClient(true);
-  }, []);
+    console.log("carts page ", carts);
+  }, [carts]);
   if (isClient) {
     return <InvoiceView carts={carts} customer={customer} company={company} />;
   } else {

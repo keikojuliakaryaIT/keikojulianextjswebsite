@@ -21,7 +21,8 @@ export default function InvoicePage({
   const [isClient, setisClient] = useState(false);
   useEffect(() => {
     setisClient(true);
-  }, []);
+    console.log("carts Invoice View ", carts);
+  }, [carts]);
 
   if (isClient) {
     return (

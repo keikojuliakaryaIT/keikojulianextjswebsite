@@ -6,8 +6,6 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { Provider } from "react-redux";
 import { analytics } from "@/components/firebase/config";
-import { logEvent } from "firebase/analytics";
-import { usePathname } from "next/navigation";
 
 interface Props {
   readonly children: ReactNode;

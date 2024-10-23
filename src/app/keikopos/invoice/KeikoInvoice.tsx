@@ -130,7 +130,8 @@ const KeikoInvoice = ({
 
   useEffect(() => {
     countingPrice();
-  }, [countingPrice]);
+    console.log("carts Keiko Invoice ", carts);
+  }, [carts, countingPrice]);
 
   function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
