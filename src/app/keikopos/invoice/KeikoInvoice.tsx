@@ -10,6 +10,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 // const Document = dynamic(
 //   () => import("@react-pdf/renderer").then((mod) => mod.Document),
 //   {
@@ -119,10 +120,7 @@ const KeikoInvoice = ({
   company: any;
 }) => {
   // const carts = useAppSelector((state) => state.cart?.items);
-	
   const [totalPrice, setTotalPrice] = useState(0);
-  const [localCustomer, setlocalCustomer] = useState<any>();
-  const [localCarts, setlocalCarts] = useState<any>([]);
   const countingPrice = useCallback(() => {
     let pricing = 0;
     carts?.forEach((element: any) => {
@@ -130,31 +128,10 @@ const KeikoInvoice = ({
     });
     setTotalPrice(pricing);
   }, [carts]);
-	const getData = useCallback(() => {
-    try {
-      const valueCustomer = window.localStorage.getItem("customer");
-      const valueCarts = window.localStorage.getItem("carts");
-      if (valueCustomer) {
-        console.log("value customer in keikoinvoice ", valueCustomer);
-        setlocalCustomer(JSON.parse(valueCustomer));
-      } else {
-        console.log("failed local data in keikoinvoice Customer");
-      }
-      if (valueCarts) {
-        console.log("value valueCarts in keikoinvoice ", valueCarts);
-        setlocalCarts(JSON.parse(valueCarts));
-      } else {
-        console.log("failed local data in keikoinvoice Carts");
-      }
-    } catch (error) {
-      console.log("error getlocal ", error);
-    }
-  }, []);
+
   useEffect(() => {
     countingPrice();
-    getData();
-    console.log("carts Keiko Invoice ", carts);
-  }, [carts, countingPrice, getData]);
+  }, [countingPrice]);
 
   function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
@@ -219,23 +196,23 @@ const KeikoInvoice = ({
                   fontFamily: "OpenSansRegular",
                 }}
               >
-                {localCustomer.name}
+                {customer.name}
               </Text>
               <Text
                 style={{
                   fontFamily: "OpenSansRegular",
                 }}
               >
-                {localCustomer.email}
+                {customer.email}
               </Text>
 
-              {localCustomer.name !== "" ? (
+              {customer.name !== "" ? (
                 <Text
                   style={{
                     fontFamily: "OpenSansRegular",
                   }}
                 >
-                  {localCustomer.address}
+                  {customer.address}
                 </Text>
               ) : null}
             </View>
@@ -318,7 +295,7 @@ const KeikoInvoice = ({
             </Text>
           </View>
           <View>
-            {localCarts?.map((data: any) => {
+            {carts?.map((data: any) => {
               return (
                 <View
                   style={{

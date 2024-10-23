@@ -12,23 +12,28 @@ export default function Home() {
   const carts = useAppSelector((state) => state.cart?.items);
   const customer = useAppSelector((state) => state.cart?.customer);
   const company = useAppSelector((state) => state.cart?.companyPayment);
-  const [localCustomer, setlocalCustomer] = useState<any>();
-  const [localCarts, setlocalCarts] = useState<any>([]);
+  const [localCustomer, setlocalCustomer] = useState<any>(
+    JSON.parse(window.localStorage.getItem("customer") ?? "")
+  );
+  const [localCarts, setlocalCarts] = useState<any>(
+    JSON.parse(window.localStorage.getItem("carts") ?? `[]`)
+  );
   const getData = useCallback(() => {
     try {
-      const valueCustomer = window.localStorage.getItem("customer");
-      const valueCarts = window.localStorage.getItem("carts");
+      let valueCustomer = window.localStorage.getItem("customer");
+      let valueCarts = window.localStorage.getItem("carts");
       if (valueCustomer) {
-        console.log("value customer ", valueCustomer);
+        console.log("value customer invoice ", valueCustomer);
         setlocalCustomer(JSON.parse(valueCustomer));
+        if (valueCarts) {
+          console.log("value valueCarts invoice ", valueCarts);
+          setlocalCarts(JSON.parse(valueCarts));
+          setisClient(true);
+        } else {
+          console.log("failed local data Invoice Page Carts");
+        }
       } else {
         console.log("failed local data Customer");
-      }
-      if (valueCarts) {
-        console.log("value valueCarts ", valueCarts);
-        setlocalCarts(JSON.parse(valueCarts));
-      } else {
-        console.log("failed local data Carts");
       }
     } catch (error) {
       console.log("error getlocal ", error);
@@ -36,10 +41,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setisClient(true);
     getData();
-    console.log("carts page ", carts);
-  }, [carts, getData]);
+  }, [getData]);
   if (isClient) {
     return (
       <InvoiceView
