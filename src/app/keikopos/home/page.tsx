@@ -131,6 +131,8 @@ export default function HomePos() {
   }
 
   async function createInvoice() {
+		window.localStorage.setItem("customer", JSON.stringify(customer));
+		window.localStorage.setItem("carts", JSON.stringify(carts));
     dispatch(changeCustomerData(customer));
     return router.push("invoice");
   }
