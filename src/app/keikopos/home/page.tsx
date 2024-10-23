@@ -130,7 +130,7 @@ export default function HomePos() {
     console.log("item ", item);
   }
 
-  function createInvoice() {
+  async function createInvoice() {
     dispatch(changeCustomerData(customer));
     return router.push("invoice");
   }

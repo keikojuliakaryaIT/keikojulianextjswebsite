@@ -9,12 +9,16 @@ import { Suspense } from "react";
 import { PDFViewer } from "@react-pdf/renderer";
 // import { PDFViewer } from "@react-pdf/renderer";
 
-export default function InvoicePage() {
-  const carts = useAppSelector((state) => state.cart?.items);
-  const customer = useAppSelector((state) => state.cart?.customer);
-  const company = useAppSelector((state) => state.cart?.companyPayment);
+export default function InvoicePage({
+  carts,
+  customer,
+  company,
+}: {
+  carts: any;
+  customer: any;
+  company: any;
+}) {
   const [isClient, setisClient] = useState(false);
-  const router = useRouter();
   useEffect(() => {
     setisClient(true);
   }, []);
