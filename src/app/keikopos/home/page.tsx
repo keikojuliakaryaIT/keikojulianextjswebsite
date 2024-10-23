@@ -2,6 +2,7 @@
 import getDataCollection from "@/components/firebase/getDataCollection";
 import {
   addCart,
+  changeCustomerData,
   changeStock,
   deleteStock,
 } from "@/components/lib/features/cart/slice";
@@ -15,8 +16,10 @@ import {
   ModalFooter,
   ModalHeader,
   Pagination,
+  Textarea,
   useDisclosure,
 } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
@@ -35,6 +38,12 @@ export default function HomePos() {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [modalMode, setmodalMode] = useState<"delete" | "create">("delete");
   const [selectedItem, setselectedItem] = useState<any>();
+  const [customer, setCustomer] = useState({
+    name: "",
+    email: "",
+    address: "",
+  });
+  const router = useRouter();
 
   const getDataProducts = useCallback(async () => {
     const { result, error } = await getDataCollection(
@@ -105,6 +114,11 @@ export default function HomePos() {
     setmodalMode("delete");
     onOpen();
   }
+  function openCreate(data: any) {
+    // setselectedItem(data);
+    setmodalMode("create");
+    onOpen();
+  }
   function onDeleteStock(data: any) {
     dispatch(deleteStock(data));
     onClose();
@@ -112,10 +126,22 @@ export default function HomePos() {
       duration: 1000,
     });
   }
+  async function createOrder(item: any) {
+    console.log("item ", item);
+  }
+
+  function createInvoice() {
+    dispatch(changeCustomerData(customer));
+    return router.push("invoice");
+  }
 
   return (
     <div className="flex w-full px-5">
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        scrollBehavior="inside"
+      >
         <ModalContent>
           {(onClose) => (
             <>
@@ -139,6 +165,83 @@ export default function HomePos() {
                       onPress={() => onDeleteStock(selectedItem)}
                     >
                       Delete
+                    </Button>
+                  </ModalFooter>
+                </>
+              ) : modalMode === "create" ? (
+                <>
+                  <ModalHeader className="flex flex-col gap-1">
+                    Create Order
+                  </ModalHeader>
+                  <ModalBody>
+                    <div>
+                      <Input
+                        isRequired
+                        autoFocus
+                        label="Name Customer"
+                        labelPlacement="outside"
+                        type="text"
+                        variant="bordered"
+                        value={customer.name}
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, name: datas };
+                          })
+                        }
+                      />
+                      <Input
+                        isRequired
+                        autoFocus
+                        label="Email Customer"
+                        labelPlacement="outside"
+                        type="text"
+                        variant="bordered"
+                        value={customer.email}
+                        inputMode="email"
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, email: datas };
+                          })
+                        }
+                      />
+                      <Textarea
+                        autoFocus
+                        label="Adress Customer"
+                        labelPlacement="outside"
+                        type="text"
+                        variant="bordered"
+                        value={customer.address}
+                        inputMode="email"
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, address: datas };
+                          })
+                        }
+                      />
+                      <h2>List Items</h2>
+                      <div className="p-2 border-1 rounded-sm">
+                        {carts?.map((data) => (
+                          <div key={data.id} className="flex justify-between">
+                            <div>
+                              <p>{data.nameProduct}</p>
+                            </div>
+                            <div>
+                              <p>{data.stockOut?.toString()}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancel
+                    </Button>
+                    <Button color="danger" onPress={() => createOrder(carts)}>
+                      Create Order
+                    </Button>
+                    <Button color="secondary" onPress={createInvoice}>
+                      Create Invoice
                     </Button>
                   </ModalFooter>
                 </>
@@ -242,6 +345,7 @@ export default function HomePos() {
             radius="sm"
             color="primary"
             isDisabled={carts?.length === 0}
+            onPress={openCreate}
           >
             Continue Too Payment
           </Button>

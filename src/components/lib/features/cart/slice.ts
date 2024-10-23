@@ -4,11 +4,31 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 // Define a type for the slice state
 interface CartState {
   items: any[];
+  customer: {
+    name: string;
+    email: string;
+    address: string;
+  };
+	companyPayment:{
+		name:string,
+		accountName:string,
+		address:string,
+	}
 }
 
 // Define the initial state using that type
 const initialState: CartState = {
   items: [],
+  customer: {
+    name: "",
+    email: "",
+    address: "",
+  },
+	companyPayment:{
+		name:'Keiko Julia',
+		accountName:'Keiko Julia',
+		address:'34 boon leat terrace #04-19B S119866'
+	}
 };
 
 export const cartSlice = createSlice({
@@ -36,10 +56,22 @@ export const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
+    changeCustomerName: (state, action: PayloadAction<any>) => {
+      state.customer.name = action.payload;
+    },
+    changeCustomerEmail: (state, action: PayloadAction<any>) => {
+      state.customer.email = action.payload;
+    },
+    changeCustomerAddress: (state, action: PayloadAction<any>) => {
+      state.customer.address = action.payload;
+    },
+		changeCustomerData: (state, action: PayloadAction<any>) => {
+      state.customer = action.payload;
+    },
   },
 });
 
-export const { addCart, clearCart, changeStock, deleteStock } =
+export const { addCart, clearCart, changeStock, deleteStock ,changeCustomerData} =
   cartSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
