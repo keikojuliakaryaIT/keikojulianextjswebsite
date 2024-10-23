@@ -27,8 +27,7 @@ export default function Home() {
       if (valueCarts) {
         console.log("value valueCarts ", valueCarts);
         setlocalCarts(JSON.parse(valueCarts));
-      }
-      {
+      } else {
         console.log("failed local data Carts");
       }
     } catch (error) {
@@ -44,9 +43,9 @@ export default function Home() {
   if (isClient) {
     return (
       <InvoiceView
-        carts={carts}
+        carts={localCarts}
         customer={localCustomer}
-        company={localCarts}
+        company={company}
       />
     );
   } else {
