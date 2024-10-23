@@ -9,6 +9,42 @@ import {
   Font,
   Image,
 } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
+// const Document = dynamic(
+//   () => import("@react-pdf/renderer").then((mod) => mod.Document),
+//   {
+//     ssr: false,
+//     loading: () => <p>Loading Document...</p>,
+//   }
+// );
+// const Page = dynamic(
+//   () => import("@react-pdf/renderer").then((mod) => mod.Page),
+//   {
+//     ssr: false,
+//     loading: () => <p>Loading Page...</p>,
+//   }
+// );
+// const Text = dynamic(
+//   () => import("@react-pdf/renderer").then((mod) => mod.Text),
+//   {
+//     ssr: false,
+//     loading: () => <p>Loading Text...</p>,
+//   }
+// );
+// const View = dynamic(
+//   () => import("@react-pdf/renderer").then((mod) => mod.View),
+//   {
+//     ssr: false,
+//     loading: () => <p>Loading Document...</p>,
+//   }
+// );
+// const Image = dynamic(
+//   () => import("@react-pdf/renderer").then((mod) => mod.Image),
+//   {
+//     ssr: false,
+//     loading: () => <p>Loading Font...</p>,
+//   }
+// );
 // import OpenSansRegular from "@/../public/OpenSans/OpenSans-Regular.ttf";
 // Create styles
 Font.register({
@@ -103,13 +139,17 @@ const KeikoInvoice = ({
     });
     return SGDollar.format(price);
   }
-
   return (
     <Document pageMode="fullScreen">
       <Page size="A4" style={styles.page}>
         <View style={styles.titleHeader}>
           <View style={{ alignItems: "flex-end" }}>
-            <Image src={"/logoResize.png"} style={{ width: "50%" }} />
+            <Image
+              src={"/logoResize.png"}
+              style={{ width: "50%" }}
+              // id="test"
+              // alt="test"
+            />
           </View>
           {/* <Text style={styles.titleHeaderText}>Keiko Julia</Text> */}
           <View
@@ -200,7 +240,7 @@ const KeikoInvoice = ({
               <Text
                 style={{
                   fontFamily: "OpenSansRegular",
-									maxWidth:'50%'
+                  maxWidth: "50%",
                 }}
               >
                 {company.address}
