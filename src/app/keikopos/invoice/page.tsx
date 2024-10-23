@@ -19,11 +19,13 @@ export default function Home() {
       const valueCustomer = window.localStorage.getItem("customer");
       const valueCarts = window.localStorage.getItem("carts");
       if (valueCustomer) {
+				console.log('value customer ',valueCustomer);
         setlocalCustomer(JSON.parse(valueCustomer));
       } else {
         console.log("failed local data Customer");
       }
       if (valueCarts) {
+				console.log('value valueCarts ',valueCarts);
         setlocalCarts(JSON.parse(valueCarts));
       }
       {
