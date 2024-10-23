@@ -19,19 +19,21 @@ export default function Home() {
       const valueCustomer = window.localStorage.getItem("customer");
       const valueCarts = window.localStorage.getItem("carts");
       if (valueCustomer) {
-				console.log('value customer ',valueCustomer);
+        console.log("value customer ", valueCustomer);
         setlocalCustomer(JSON.parse(valueCustomer));
       } else {
         console.log("failed local data Customer");
       }
       if (valueCarts) {
-				console.log('value valueCarts ',valueCarts);
+        console.log("value valueCarts ", valueCarts);
         setlocalCarts(JSON.parse(valueCarts));
       }
       {
         console.log("failed local data Carts");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log("error getlocal ", error);
+    }
   }, []);
 
   useEffect(() => {
@@ -40,7 +42,13 @@ export default function Home() {
     console.log("carts page ", carts);
   }, [carts, getData]);
   if (isClient) {
-    return <InvoiceView carts={carts} customer={localCustomer} company={localCarts} />;
+    return (
+      <InvoiceView
+        carts={carts}
+        customer={localCustomer}
+        company={localCarts}
+      />
+    );
   } else {
     return <div>Home</div>;
   }
