@@ -119,7 +119,10 @@ const KeikoInvoice = ({
   company: any;
 }) => {
   // const carts = useAppSelector((state) => state.cart?.items);
+	
   const [totalPrice, setTotalPrice] = useState(0);
+  const [localCustomer, setlocalCustomer] = useState<any>();
+  const [localCarts, setlocalCarts] = useState<any>([]);
   const countingPrice = useCallback(() => {
     let pricing = 0;
     carts?.forEach((element: any) => {
@@ -127,11 +130,31 @@ const KeikoInvoice = ({
     });
     setTotalPrice(pricing);
   }, [carts]);
-
+	const getData = useCallback(() => {
+    try {
+      const valueCustomer = window.localStorage.getItem("customer");
+      const valueCarts = window.localStorage.getItem("carts");
+      if (valueCustomer) {
+        console.log("value customer in keikoinvoice ", valueCustomer);
+        setlocalCustomer(JSON.parse(valueCustomer));
+      } else {
+        console.log("failed local data in keikoinvoice Customer");
+      }
+      if (valueCarts) {
+        console.log("value valueCarts in keikoinvoice ", valueCarts);
+        setlocalCarts(JSON.parse(valueCarts));
+      } else {
+        console.log("failed local data in keikoinvoice Carts");
+      }
+    } catch (error) {
+      console.log("error getlocal ", error);
+    }
+  }, []);
   useEffect(() => {
     countingPrice();
+    getData();
     console.log("carts Keiko Invoice ", carts);
-  }, [carts, countingPrice]);
+  }, [carts, countingPrice, getData]);
 
   function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
@@ -196,23 +219,23 @@ const KeikoInvoice = ({
                   fontFamily: "OpenSansRegular",
                 }}
               >
-                {customer.name}
+                {localCustomer.name}
               </Text>
               <Text
                 style={{
                   fontFamily: "OpenSansRegular",
                 }}
               >
-                {customer.email}
+                {localCustomer.email}
               </Text>
 
-              {customer.name !== "" ? (
+              {localCustomer.name !== "" ? (
                 <Text
                   style={{
                     fontFamily: "OpenSansRegular",
                   }}
                 >
-                  {customer.address}
+                  {localCustomer.address}
                 </Text>
               ) : null}
             </View>
@@ -295,7 +318,7 @@ const KeikoInvoice = ({
             </Text>
           </View>
           <View>
-            {carts?.map((data: any) => {
+            {localCarts?.map((data: any) => {
               return (
                 <View
                   style={{
