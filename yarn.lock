@@ -6667,6 +6667,7 @@ __metadata:
     html2pdf: "npm:^0.0.11"
     jspdf: "npm:^2.5.2"
     next: "npm:14.2.7"
+    next-redux-wrapper: "npm:^8.1.0"
     next-themes: "npm:^0.3.0"
     postcss: "npm:^8"
     react: "npm:^18"
@@ -7054,6 +7055,17 @@ __metadata:
   version: 0.6.3
   resolution: "negotiator@npm:0.6.3"
   checksum: 10c0/3ec9fd413e7bf071c937ae60d572bc67155262068ed522cf4b3be5edbe6ddf67d095ec03a3a14ebf8fc8e95f8e1d61be4869db0dbb0de696f6b837358bd43fc2
+  languageName: node
+  linkType: hard
+
+"next-redux-wrapper@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "next-redux-wrapper@npm:8.1.0"
+  peerDependencies:
+    next: ">=9"
+    react: "*"
+    react-redux: "*"
+  checksum: 10c0/15e1dce4255b48bd92c9f0112c3d557cee2b3d149c246bac3a4ece15e6c83e843299f2fe2c10f10ee41abd7a4462cff6ac7f29377533dfbdb955f3bdad226d10
   languageName: node
   linkType: hard
 

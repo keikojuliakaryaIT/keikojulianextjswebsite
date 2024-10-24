@@ -21,6 +21,7 @@
     "html2pdf": "^0.0.11",
     "jspdf": "^2.5.2",
     "next": "14.2.7",
+    "next-redux-wrapper": "^8.1.0",
     "next-themes": "^0.3.0",
     "react": "^18",
     "react-currency-input-field": "^3.8.0",

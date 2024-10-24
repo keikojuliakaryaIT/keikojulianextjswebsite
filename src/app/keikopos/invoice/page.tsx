@@ -42,12 +42,13 @@ export default function Home() {
 
   useEffect(() => {
     getData();
-  }, [getData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   if (isClient) {
     return (
       <InvoiceView
-        carts={localCarts}
-        customer={localCustomer}
+        carts={carts}
+        customer={customer}
         company={company}
       />
     );

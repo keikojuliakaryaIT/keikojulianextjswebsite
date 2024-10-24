@@ -18,21 +18,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
-      <head>
-        <link rel="icon" href="/Logo.ico" sizes="any" />
-      </head>
-      <body className={inter.className}>
+    <StoreProvider>
+      <html lang="en" className="light">
+        <head>
+          <link rel="icon" href="/Logo.ico" sizes="any" />
+        </head>
+        <body className={inter.className}>
           <Providers>
-            <StoreProvider>
-              <ViewListener>{children}</ViewListener>
-            </StoreProvider>
+            <ViewListener>{children}</ViewListener>
             {/* <Navbar >
 					</Navbar>
 					<Footer /> */}
           </Providers>
           <Toaster position="top-center" />
-      </body>
-    </html>
+        </body>
+      </html>
+    </StoreProvider>
   );
 }
