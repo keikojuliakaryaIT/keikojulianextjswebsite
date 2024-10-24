@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useAppSelector } from "@/components/lib/hooks";
 import getData from "@/components/firebase/getData";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 // import InvoicePage from "./InvoiceView";
 const InvoiceView = dynamic(() => import("./InvoiceView"), {
   ssr: false,
@@ -11,25 +12,17 @@ const InvoiceView = dynamic(() => import("./InvoiceView"), {
 
 export default function Home() {
   const [isClient, setisClient] = useState(false);
-  const carts = useAppSelector((state) => state.cart?.items);
-  const customer = useAppSelector((state) => state.cart?.customer);
   const company = useAppSelector((state) => state.cart?.companyPayment);
-  const [localCustomer, setlocalCustomer] = useState<any>(
-    JSON.parse(window.localStorage.getItem("customer") ?? "")
-  );
-  const [localCarts, setlocalCarts] = useState<any>(
-    JSON.parse(window.localStorage.getItem("carts") ?? `[]`)
-  );
+  const searchParams = useSearchParams();
   const [resultOrder, setresultOrder] = useState<any>();
   const getDataOrders = useCallback(async () => {
     try {
       const { result, error } = await getData(
         `Sale/POS/Orders`,
-        "xm18yIgwRGfVATF5b3h9"
+        searchParams.get("id") ?? ""
       );
 
       if (!error) {
-        console.log("result get ", result);
         setresultOrder(result);
         setisClient(true);
       } else {
@@ -38,7 +31,7 @@ export default function Home() {
     } catch (error) {
       console.log("error getlocal ", error);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     getDataOrders();
