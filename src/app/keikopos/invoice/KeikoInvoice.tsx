@@ -236,7 +236,7 @@ const KeikoInvoice = ({
                   fontFamily: "OpenSansRegular",
                 }}
               >
-                Account No: {company.accountNo}
+                Uen Number : {company.Uennumber}
               </Text>
               <Text
                 style={{

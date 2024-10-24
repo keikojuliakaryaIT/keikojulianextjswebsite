@@ -11,7 +11,7 @@ interface CartState {
   };
 	companyPayment:{
 		name:string,
-		accountName:string,
+		Uennumber:string,
 		address:string,
 	}
 }
@@ -26,7 +26,7 @@ const initialState: CartState = {
   },
 	companyPayment:{
 		name:'Keiko Julia',
-		accountName:'Keiko Julia',
+		Uennumber:'202327971C',
 		address:'34 boon leat terrace #04-19B S119866'
 	}
 };
