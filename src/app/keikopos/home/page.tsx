@@ -19,6 +19,7 @@ import {
   Textarea,
   useDisclosure,
 } from "@nextui-org/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaPlus, FaSearch } from "react-icons/fa";
@@ -134,7 +135,7 @@ export default function HomePos() {
 		window.localStorage.setItem("customer", JSON.stringify(customer));
 		window.localStorage.setItem("carts", JSON.stringify(carts));
     dispatch(changeCustomerData(customer));
-    return router.push("invoice");
+    // return router.push("invoice");
   }
 
   return (
@@ -245,6 +246,7 @@ export default function HomePos() {
                     <Button color="secondary" onPress={createInvoice}>
                       Create Invoice
                     </Button>
+										<Link href="/keikopos/invoice">Create Invoice with link</Link>
                   </ModalFooter>
                 </>
               ) : null}

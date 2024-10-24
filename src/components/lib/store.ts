@@ -2,7 +2,6 @@ import type { Action, ThunkAction } from "@reduxjs/toolkit";
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { quotesApiSlice } from "./features/quotes/quotesApiSlice";
 import { cartSlice } from "./features/cart/slice";
-import { createWrapper } from "next-redux-wrapper";
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
@@ -35,4 +34,3 @@ export type AppThunk<ThunkReturnType = void> = ThunkAction<
   unknown,
   Action
 >;
-export const wrapper = createWrapper<AppStore>(makeStore, { debug: true });
