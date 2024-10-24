@@ -1,4 +1,5 @@
 "use client";
+import createData from "@/components/firebase/createData";
 import getDataCollection from "@/components/firebase/getDataCollection";
 import {
   addCart,
@@ -132,9 +133,22 @@ export default function HomePos() {
   }
 
   async function createInvoice() {
-		window.localStorage.setItem("customer", JSON.stringify(customer));
-		window.localStorage.setItem("carts", JSON.stringify(carts));
-    dispatch(changeCustomerData(customer));
+    // window.localStorage.setItem("customer", JSON.stringify(customer));
+    // window.localStorage.setItem("carts", JSON.stringify(carts));
+    // dispatch(changeCustomerData(customer));
+    const data = {
+      location: "testingEvent",
+      customer: customer,
+      carts: carts,
+    };
+    const { result, error } = await createData(`Sale/POS/Orders`, data);
+    if (!error) {
+      toast.success("Add Product successful!");
+      console.log("result add Order ", result?.id);
+      // setProduct((prev) => {
+      //   return { ...prev, idProduct: "" };
+      // });
+    }
     // return router.push("invoice");
   }
 
@@ -246,7 +260,9 @@ export default function HomePos() {
                     <Button color="secondary" onPress={createInvoice}>
                       Create Invoice
                     </Button>
-										<Link href="/keikopos/invoice">Create Invoice with link</Link>
+                    <Link href="/keikopos/invoice">
+                      Create Invoice with link
+                    </Link>
                   </ModalFooter>
                 </>
               ) : null}

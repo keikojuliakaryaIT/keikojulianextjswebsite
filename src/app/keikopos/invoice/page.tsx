@@ -2,6 +2,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAppSelector } from "@/components/lib/hooks";
+import getData from "@/components/firebase/getData";
+import { toast } from "sonner";
 // import InvoicePage from "./InvoiceView";
 const InvoiceView = dynamic(() => import("./InvoiceView"), {
   ssr: false,
@@ -18,22 +20,20 @@ export default function Home() {
   const [localCarts, setlocalCarts] = useState<any>(
     JSON.parse(window.localStorage.getItem("carts") ?? `[]`)
   );
-  const getData = useCallback(() => {
+  const [resultOrder, setresultOrder] = useState<any>();
+  const getDataOrders = useCallback(async () => {
     try {
-      let valueCustomer = window.localStorage.getItem("customer");
-      let valueCarts = window.localStorage.getItem("carts");
-      if (valueCustomer) {
-        console.log("value customer invoice ", valueCustomer);
-        setlocalCustomer(JSON.parse(valueCustomer));
-        if (valueCarts) {
-          console.log("value valueCarts invoice ", valueCarts);
-          setlocalCarts(JSON.parse(valueCarts));
-          setisClient(true);
-        } else {
-          console.log("failed local data Invoice Page Carts");
-        }
+      const { result, error } = await getData(
+        `Sale/POS/Orders`,
+        "xm18yIgwRGfVATF5b3h9"
+      );
+
+      if (!error) {
+        console.log("result get ", result);
+        setresultOrder(result);
+        setisClient(true);
       } else {
-        console.log("failed local data Customer");
+        return toast("ERROR, Please Try Again !");
       }
     } catch (error) {
       console.log("error getlocal ", error);
@@ -41,14 +41,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    getData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    getDataOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   if (isClient) {
     return (
       <InvoiceView
-        carts={carts}
-        customer={customer}
+        carts={resultOrder?.carts}
+        customer={resultOrder?.customer}
         company={company}
       />
     );
