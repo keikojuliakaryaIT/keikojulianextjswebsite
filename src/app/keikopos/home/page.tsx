@@ -1,6 +1,7 @@
 "use client";
 import createData from "@/components/firebase/createData";
 import getDataCollection from "@/components/firebase/getDataCollection";
+import updateData from "@/components/firebase/updateData";
 import {
   addCart,
   changeCustomerData,
@@ -141,10 +142,16 @@ export default function HomePos() {
       customer: customer,
       carts: carts,
     };
-    const { result, error } = await createData(`Sale/POS/Orders`, data);
+    // const { result, error } = await createData(`Sale/POS/Orders`, data);
+    const { result, error } = await updateData(
+      `Sale/POS/Orders`,
+      "xm18yIgwRGfVATF5b3h9",
+      data
+    );
     if (!error) {
       toast.success("Add Product successful!");
       console.log("result add Order ", result?.id);
+			return router.push("invoice");
       // setProduct((prev) => {
       //   return { ...prev, idProduct: "" };
       // });
