@@ -151,7 +151,7 @@ export default function HomePos() {
     if (!error) {
       toast.success("Add Product successful!");
       console.log("result add Order ", result?.id);
-			return router.push(`invoice?id=${result?.id}`);
+			return router.push("invoice?id=xm18yIgwRGfVATF5b3h9");
       // setProduct((prev) => {
       //   return { ...prev, idProduct: "" };
       // });
