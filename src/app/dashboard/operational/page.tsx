@@ -161,14 +161,14 @@ export default function Operational() {
           findData
         );
         if (!error) {
-          setselectedProduct("");
-          setselectedClient(undefined);
-          setselectedStaff(undefined);
-          setNotes("");
-          setStockProduct(0);
-          setPrice(0);
-          setSelectedLocation(undefined);
-          setselectedStatus(undefined);
+          // setselectedProduct("");
+          // setselectedClient(undefined);
+          // setselectedStaff(undefined);
+          // setNotes("");
+          // setStockProduct(0);
+          // setPrice(0);
+          // setSelectedLocation(undefined);
+          // setselectedStatus(undefined);
           toast.success("Add Stock In Succesful");
 
           console.log("result update Data berhasil");
