@@ -267,9 +267,9 @@ export default function HomePos() {
                     <Button color="secondary" onPress={createInvoice}>
                       Create Invoice
                     </Button>
-                    <Link href="/keikopos/invoice">
+                    {/* <Link href="/keikopos/invoice">
                       Create Invoice with link
-                    </Link>
+                    </Link> */}
                   </ModalFooter>
                 </>
               ) : null}
