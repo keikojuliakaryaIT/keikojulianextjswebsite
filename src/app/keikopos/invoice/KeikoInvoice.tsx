@@ -144,8 +144,8 @@ const KeikoInvoice = ({
 
   useEffect(() => {
     countingPrice();
-		grandTotals()
-  }, [countingPrice,grandTotals]);
+    grandTotals();
+  }, [countingPrice, grandTotals]);
 
   function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
@@ -325,7 +325,7 @@ const KeikoInvoice = ({
                     <Text
                       style={{ width: "55%", fontFamily: "OpenSansRegular" }}
                     >
-                      {data.nameProduct}
+                      {data.nameProduct ?? data.idProduct}
                     </Text>
                     <Text
                       style={{
