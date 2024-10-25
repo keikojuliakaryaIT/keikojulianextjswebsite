@@ -222,6 +222,14 @@ export default function HomePos() {
           pushDataStockOut(data);
         });
         getDataProducts();
+        const { result, error } = await updateData(
+          `Sale/POS/Settings`,
+          "4zvL76bmXRCo44WSSfIl",
+          { InvoiceNumber: settings.InvoiceNumber + 1 }
+        );
+        if (!error) {
+          toast.success("Add Stock Out Succesful");
+        }
         dispatch(clearCart());
         setCustomer({
           address: "",
