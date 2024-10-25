@@ -39,11 +39,13 @@ export default function Home() {
   }, []);
   if (isClient) {
     return (
-      <InvoiceView
-        carts={resultOrder?.carts}
-        customer={resultOrder?.customer}
-        company={company}
-      />
+      <div>
+        <InvoiceView
+          carts={resultOrder?.carts}
+          customer={resultOrder?.customer}
+          company={company}
+        />
+      </div>
     );
   } else {
     return <div>Home</div>;

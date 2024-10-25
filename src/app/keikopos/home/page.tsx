@@ -1,11 +1,13 @@
 "use client";
 import createData from "@/components/firebase/createData";
+import getData from "@/components/firebase/getData";
 import getDataCollection from "@/components/firebase/getDataCollection";
 import updateData from "@/components/firebase/updateData";
 import {
   addCart,
   changeCustomerData,
   changeStock,
+  clearCart,
   deleteStock,
 } from "@/components/lib/features/cart/slice";
 import { useAppDispatch, useAppSelector } from "@/components/lib/hooks";
@@ -45,10 +47,14 @@ export default function HomePos() {
     name: "",
     email: "",
     address: "",
+    staffPayment: "",
+    codeSale: "",
   });
   const router = useRouter();
+  const [settings, setSettings] = useState<any>();
 
   const getDataProducts = useCallback(async () => {
+    // 4zvL76bmXRCo44WSSfIl
     const { result, error } = await getDataCollection(
       `Inventory/Storage/Products`
     );
@@ -62,12 +68,28 @@ export default function HomePos() {
     } else {
       return toast("ERROR, Please Try Again !");
     }
+  }, []);
+  const getPOSSettings = useCallback(async () => {
+    // 4zvL76bmXRCo44WSSfIl
+    const { result, error } = await getData(
+      `Sale/POS/Settings`,
+      "4zvL76bmXRCo44WSSfIl"
+    );
+
+    if (!error) {
+      console.log("results ", result);
+      setSettings(result);
+    } else {
+      return toast("ERROR, Please Try Again !");
+    }
     setOnRefresh(false);
   }, []);
   useEffect(() => {
     setOnRefresh(true);
     getDataProducts();
-  }, [getDataProducts]);
+    getPOSSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // useEffect(() => {
   //   console.log("carts ", carts);
   // }, [carts]);
@@ -133,25 +155,84 @@ export default function HomePos() {
     console.log("item ", item);
   }
 
+  async function pushDataStockOut(item: any) {
+    console.log("item ", item);
+    let findData = { ...item };
+    let productId = item.id;
+    if (findData) {
+      const { result, error } = await createData(`Inventory/Storage/StockOut`, {
+        location: "Singapore",
+        category: item?.type ?? "",
+        idProduct: findData?.idProduct,
+        nameProduct: findData?.nameProduct,
+        platform: `Event-${customer.codeSale}`,
+        stockProduct: Number(findData?.stockOut),
+        PIC: customer.staffPayment,
+        OrderData: new Date().valueOf(),
+        ArrivalData: new Date().valueOf(),
+        price: Number(findData.priceSG),
+        note: "",
+      });
+      if (!error) {
+        delete findData.id;
+        delete findData.nomor;
+        if (findData.stock_sg !== undefined) {
+          findData.stock_sg -= findData.stockOut;
+        } else {
+          findData.stock_sg = -findData.stockOut;
+        }
+
+        delete findData.stockOut;
+
+        const { result, error } = await updateData(
+          "Inventory/Storage/Products",
+          productId,
+          findData
+        );
+        if (!error) {
+          toast.success("Add Stock Out Succesful");
+        }
+      } else {
+        console.log("error add data stock ", error);
+      }
+    } else {
+      console.log("No Data");
+    }
+  }
+
   async function createInvoice() {
     // window.localStorage.setItem("customer", JSON.stringify(customer));
     // window.localStorage.setItem("carts", JSON.stringify(carts));
     // dispatch(changeCustomerData(customer));
     const data = {
       location: "testingEvent",
-      customer: customer,
+      customer: {
+        ...customer,
+        invoice: `51${customer.codeSale}${settings.InvoiceNumber.toString()}`,
+      },
       carts: carts,
     };
-    // const { result, error } = await createData(`Sale/POS/Orders`, data);
-    const { result, error } = await updateData(
-      `Sale/POS/Orders`,
-      "xm18yIgwRGfVATF5b3h9",
-      data
-    );
+    const { result, error } = await createData(`Sale/POS/Orders`, data);
     if (!error) {
       toast.success("Add Product successful!");
-      // console.log("result add Order ", result?.id);
-			return router.push("invoice?id=xm18yIgwRGfVATF5b3h9");
+      console.log("result add Order ", result?.id);
+      try {
+        carts?.map((data) => {
+          pushDataStockOut(data);
+        });
+        getDataProducts();
+        dispatch(clearCart());
+        setCustomer({
+          address: "",
+          email: "",
+          name: "",
+          codeSale: customer.codeSale,
+          staffPayment: customer.staffPayment,
+        });
+        return router.push(`invoice?id=${result?.id}`);
+      } catch (error) {
+        console.log("error Data update stockout", error);
+      }
       // setProduct((prev) => {
       //   return { ...prev, idProduct: "" };
       // });
@@ -159,6 +240,25 @@ export default function HomePos() {
     // return router.push("invoice");
   }
 
+  const checkFieldCreate = useCallback(() => {
+    let check = true;
+    if (
+      customer.codeSale !== "" &&
+      customer.email !== "" &&
+      customer.name !== "" &&
+      customer.staffPayment !== ""
+    ) {
+      check = false;
+    }
+    return check;
+  }, [customer]);
+	function convertCurrency(price: number) {
+    let SGDollar = new Intl.NumberFormat("en-SG", {
+      style: "currency",
+      currency: "SGD",
+    });
+    return SGDollar.format(price);
+  }
   return (
     <div className="flex w-full px-5">
       <Modal
@@ -215,7 +315,6 @@ export default function HomePos() {
                       />
                       <Input
                         isRequired
-                        autoFocus
                         label="Email Customer"
                         labelPlacement="outside"
                         type="text"
@@ -229,16 +328,42 @@ export default function HomePos() {
                         }
                       />
                       <Textarea
-                        autoFocus
-                        label="Adress Customer"
+                        label="Address"
                         labelPlacement="outside"
                         type="text"
                         variant="bordered"
                         value={customer.address}
-                        inputMode="email"
+                        inputMode="text"
                         onValueChange={(datas) =>
                           setCustomer((prev) => {
                             return { ...prev, address: datas };
+                          })
+                        }
+                      />
+                      <Input
+                        isRequired
+                        label="Code Event"
+                        labelPlacement="outside"
+                        type="text"
+                        variant="bordered"
+                        value={customer.codeSale}
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, codeSale: datas };
+                          })
+                        }
+                      />
+                      <Input
+                        isRequired
+                        label="Payment processed by"
+                        labelPlacement="outside"
+                        type="text"
+                        variant="bordered"
+                        value={customer.staffPayment}
+                        inputMode="text"
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, staffPayment: datas };
                           })
                         }
                       />
@@ -264,7 +389,11 @@ export default function HomePos() {
                     <Button color="danger" onPress={() => createOrder(carts)}>
                       Create Order
                     </Button>
-                    <Button color="secondary" onPress={createInvoice}>
+                    <Button
+                      color="secondary"
+                      onPress={createInvoice}
+                      isDisabled={checkFieldCreate()}
+                    >
                       Create Invoice
                     </Button>
                     {/* <Link href="/keikopos/invoice">
@@ -287,28 +416,37 @@ export default function HomePos() {
           labelPlacement="outside"
           startContent={<FaSearch />}
         />
-        {items?.map((data: any) => (
-          <div
-            className="flex flex-row justify-between my-5 border-1 p-2 rounded-md"
-            key={data.id}
-          >
-            <div>
-              <p>{data.nameProduct !== "" ? data.nameProduct : "Not Set"}</p>
-              <p>{data.idProduct}</p>
-              <p>Stock : {data.stock_sg ?? 0}</p>
-            </div>
-            <div className="flex flex-row gap-2 justify-center items-center">
-              <Button
-                color="primary"
-                aria-label="Plus"
-                isDisabled={data?.stock_sg === 0 || data.stock_sg === undefined}
-                onPress={() => addToCart(data)}
+        {items?.map((data: any) => {
+          if (data.stock_sg !== undefined && data.stock_sg > 0) {
+            return (
+              <div
+                className="flex flex-row justify-between my-5 border-1 p-2 rounded-md"
+                key={data.id}
               >
-                <FaPlus /> <p>Add To Cart</p>
-              </Button>
-            </div>
-          </div>
-        ))}
+                <div>
+                  <p>
+                    {data.nameProduct !== "" ? data.nameProduct : "Not Set"}
+                  </p>
+                  <p>{data.idProduct}</p>
+                  <p>Stock : {data.stock_sg ?? 0}</p>
+                  <p>Price : {convertCurrency(data.priceSG ?? 0)}</p>
+                </div>
+                <div className="flex flex-row gap-2 justify-center items-center">
+                  <Button
+                    color="primary"
+                    aria-label="Plus"
+                    isDisabled={
+                      data?.stock_sg === 0 || data.stock_sg === undefined
+                    }
+                    onPress={() => addToCart(data)}
+                  >
+                    <FaPlus /> <p>Add To Cart</p>
+                  </Button>
+                </div>
+              </div>
+            );
+          }
+        })}
         <Pagination
           total={pages}
           // initialPage={1}
@@ -322,36 +460,38 @@ export default function HomePos() {
         <h1 className="text-center py-2">Cart</h1>
         <div className="h-70v overflow-scroll">
           {carts?.map((data: any, index: number) => {
-            return (
-              <div
-                className="flex flex-row justify-between my-5 border-1 p-2 rounded-md"
-                key={data.id}
-              >
-                <div>
-                  <p>
-                    {data.nameProduct !== "" ? data.nameProduct : "Not Set"}
-                  </p>
-                  <p>{data.idProduct}</p>
-                  <p>Stock : {data.stock_sg ?? 0}</p>
-                </div>
-                <div className="flex flex-row gap-2 justify-center items-end gap-x-4">
-                  <button onClick={() => alertDelete(data)}>
-                    <MdDeleteForever className="text-center mb-1" size={24} />
-                  </button>
-                  <Input
-                    type="number"
-                    label="Quantity"
-                    placeholder="0"
-                    labelPlacement="outside"
-                    value={data.stockOut?.toString()}
-                    onValueChange={(item) => onChangeStock(data, item, index)}
-                    // startContent={
-                    //   <div className="pointer-events-none flex items-center">
-                    //     <span className="text-default-400 text-small">$</span>
-                    //   </div>
-                    // }
-                  />
-                  {/* <Button
+            if (data.stock_sg !== undefined && data.stock_sg > 0) {
+              return (
+                <div
+                  className="flex flex-row justify-between my-5 border-1 p-2 rounded-md"
+                  key={data.id}
+                >
+                  <div>
+                    <p>
+                      {data.nameProduct !== "" ? data.nameProduct : "Not Set"}
+                    </p>
+                    <p>{data.idProduct}</p>
+                    <p>Stock : {data.stock_sg ?? 0}</p>
+										<p>Price : {convertCurrency(data.priceSG ?? 0)}</p>
+                  </div>
+                  <div className="flex flex-row gap-2 justify-center items-end gap-x-4">
+                    <button onClick={() => alertDelete(data)}>
+                      <MdDeleteForever className="text-center mb-1" size={24} />
+                    </button>
+                    <Input
+                      type="number"
+                      label="Quantity"
+                      placeholder="0"
+                      labelPlacement="outside"
+                      value={data.stockOut?.toString()}
+                      onValueChange={(item) => onChangeStock(data, item, index)}
+                      // startContent={
+                      //   <div className="pointer-events-none flex items-center">
+                      //     <span className="text-default-400 text-small">$</span>
+                      //   </div>
+                      // }
+                    />
+                    {/* <Button
                   color="primary"
                   aria-label="Plus"
                   isDisabled={
@@ -361,9 +501,10 @@ export default function HomePos() {
                 >
                   <FaPlus /> <p>Add To Cart</p>
                 </Button> */}
+                  </div>
                 </div>
-              </div>
-            );
+              );
+            }
           })}
         </div>
         <div>

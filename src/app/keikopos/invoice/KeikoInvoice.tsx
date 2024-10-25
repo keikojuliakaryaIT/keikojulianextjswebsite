@@ -123,9 +123,11 @@ const KeikoInvoice = ({
   const [totalPrice, setTotalPrice] = useState(0);
   const countingPrice = useCallback(() => {
     let pricing = 0;
-    carts?.forEach((element: any) => {
-      pricing += element.stockOut * element.priceSG;
-    });
+    if (carts && carts.length > 0) {
+      carts?.forEach((element: any) => {
+        pricing += element.stockOut * element.priceSG;
+      });
+    }
     setTotalPrice(pricing);
   }, [carts]);
 
@@ -249,7 +251,7 @@ const KeikoInvoice = ({
             </View>
           </View>
           <View>
-            <Text>Invoice NO : 102501</Text>
+            <Text>Invoice NO : {customer.invoice}</Text>
             <Text>Date : {new Date().toLocaleDateString()}</Text>
           </View>
         </View>
@@ -295,52 +297,56 @@ const KeikoInvoice = ({
             </Text>
           </View>
           <View>
-            {carts?.map((data: any) => {
-              return (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    // borderBottomWidth: 1,
-                    paddingBottom: 5,
-                    paddingHorizontal: 5,
-                  }}
-                  key={data.id}
-                >
-                  <Text style={{ width: "55%", fontFamily: "OpenSansRegular" }}>
-                    {data.nameProduct}
-                  </Text>
-                  <Text
+            {carts &&
+              carts.length > 0 &&
+              carts?.map((data: any) => {
+                return (
+                  <View
                     style={{
-                      width: "20%",
-                      textAlign: "center",
-                      fontFamily: "OpenSansRegular",
+                      flexDirection: "row",
+                      // borderBottomWidth: 1,
+                      paddingBottom: 5,
+                      paddingHorizontal: 5,
                     }}
+                    key={data.id}
                   >
-                    {convertCurrency(data.priceSG)}
-                  </Text>
-                  <Text
-                    style={{
-                      width: "10%",
-                      textAlign: "center",
-                      fontFamily: "OpenSansRegular",
-                    }}
-                  >
-                    {data.stockOut}
-                  </Text>
-                  <Text
-                    style={{
-                      width: "15%",
-                      textAlign: "right",
-                      fontFamily: "OpenSansRegular",
-                    }}
-                  >
-                    {convertCurrency(
-                      Number(data.priceSG) * Number(data.stockOut)
-                    )}
-                  </Text>
-                </View>
-              );
-            })}
+                    <Text
+                      style={{ width: "55%", fontFamily: "OpenSansRegular" }}
+                    >
+                      {data.nameProduct}
+                    </Text>
+                    <Text
+                      style={{
+                        width: "20%",
+                        textAlign: "center",
+                        fontFamily: "OpenSansRegular",
+                      }}
+                    >
+                      {convertCurrency(data.priceSG)}
+                    </Text>
+                    <Text
+                      style={{
+                        width: "10%",
+                        textAlign: "center",
+                        fontFamily: "OpenSansRegular",
+                      }}
+                    >
+                      {data.stockOut}
+                    </Text>
+                    <Text
+                      style={{
+                        width: "15%",
+                        textAlign: "right",
+                        fontFamily: "OpenSansRegular",
+                      }}
+                    >
+                      {convertCurrency(
+                        Number(data.priceSG) * Number(data.stockOut)
+                      )}
+                    </Text>
+                  </View>
+                );
+              })}
           </View>
           <View
             style={{
@@ -390,6 +396,9 @@ const KeikoInvoice = ({
                 </Text>
               </View>
             </View>
+          </View>
+          <View style={{ marginTop: 5 }}>
+            <Text>Payment Processed by : {customer.staffPayment}</Text>
           </View>
         </View>
       </Page>
