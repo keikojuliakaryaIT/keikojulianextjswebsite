@@ -49,6 +49,7 @@ export default function HomePos() {
     address: "",
     staffPayment: "",
     codeSale: "",
+    discount: "",
   });
   const router = useRouter();
   const [settings, setSettings] = useState<any>();
@@ -228,6 +229,7 @@ export default function HomePos() {
           name: "",
           codeSale: customer.codeSale,
           staffPayment: customer.staffPayment,
+          discount: "",
         });
         return router.push(`invoice?id=${result?.id}`);
       } catch (error) {
@@ -252,7 +254,7 @@ export default function HomePos() {
     }
     return check;
   }, [customer]);
-	function convertCurrency(price: number) {
+  function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
       style: "currency",
       currency: "SGD",
@@ -337,6 +339,19 @@ export default function HomePos() {
                         onValueChange={(datas) =>
                           setCustomer((prev) => {
                             return { ...prev, address: datas };
+                          })
+                        }
+                      />
+                      <Input
+                        isRequired
+                        label="Discount"
+                        labelPlacement="outside"
+                        type="number"
+                        variant="bordered"
+                        value={customer.discount}
+                        onValueChange={(datas) =>
+                          setCustomer((prev) => {
+                            return { ...prev, discount: datas };
                           })
                         }
                       />
@@ -472,7 +487,7 @@ export default function HomePos() {
                     </p>
                     <p>{data.idProduct}</p>
                     <p>Stock : {data.stock_sg ?? 0}</p>
-										<p>Price : {convertCurrency(data.priceSG ?? 0)}</p>
+                    <p>Price : {convertCurrency(data.priceSG ?? 0)}</p>
                   </div>
                   <div className="flex flex-row gap-2 justify-center items-end gap-x-4">
                     <button onClick={() => alertDelete(data)}>

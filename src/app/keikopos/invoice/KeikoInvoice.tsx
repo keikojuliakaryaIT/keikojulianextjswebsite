@@ -121,6 +121,7 @@ const KeikoInvoice = ({
 }) => {
   // const carts = useAppSelector((state) => state.cart?.items);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [grandTotal, setgrandTotal] = useState(0);
   const countingPrice = useCallback(() => {
     let pricing = 0;
     if (carts && carts.length > 0) {
@@ -130,10 +131,21 @@ const KeikoInvoice = ({
     }
     setTotalPrice(pricing);
   }, [carts]);
+  const grandTotals = useCallback(() => {
+    let pricing = 0;
+    if (carts && carts.length > 0) {
+      carts?.forEach((element: any) => {
+        pricing += element.stockOut * element.priceSG;
+      });
+    }
+    pricing -= pricing * (Number(customer.discount) / 100);
+    setgrandTotal(pricing);
+  }, [carts]);
 
   useEffect(() => {
     countingPrice();
-  }, [countingPrice]);
+		grandTotals()
+  }, [countingPrice,grandTotals]);
 
   function convertCurrency(price: number) {
     let SGDollar = new Intl.NumberFormat("en-SG", {
@@ -372,6 +384,20 @@ const KeikoInvoice = ({
                 {convertCurrency(totalPrice)}
               </Text>
               <View style={{ flexDirection: "row" }}>
+                <Text>Discount {customer.discount.toString()}%</Text>
+                <Text
+                  style={{
+                    width: 100,
+                    textAlign: "right",
+                    fontFamily: "OpenSansRegular",
+                  }}
+                >
+                  {convertCurrency(
+                    totalPrice * (Number(customer.discount) / 100)
+                  )}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
                 <Text>Tax 9%</Text>
                 <Text
                   style={{
@@ -380,7 +406,7 @@ const KeikoInvoice = ({
                     fontFamily: "OpenSansRegular",
                   }}
                 >
-                  {convertCurrency(totalPrice * 0.09)}
+                  {convertCurrency(grandTotal * 0.09)}
                 </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
@@ -392,7 +418,7 @@ const KeikoInvoice = ({
                     fontFamily: "OpenSansRegular",
                   }}
                 >
-                  {convertCurrency(totalPrice * 0.09 + totalPrice)}
+                  {convertCurrency(grandTotal * 0.09 + grandTotal)}
                 </Text>
               </View>
             </View>
