@@ -217,6 +217,7 @@ export default function HomePos() {
     if (!error) {
       toast.success("Add Product successful!");
       console.log("result add Order ", result?.id);
+			let resultid = result?.id;
       try {
         carts?.map((data) => {
           pushDataStockOut(data);
@@ -239,7 +240,7 @@ export default function HomePos() {
           staffPayment: customer.staffPayment,
           discount: "",
         });
-        return router.push(`invoice?id=${result?.id}`);
+        return router.push(`invoice?id=${resultid}`);
       } catch (error) {
         console.log("error Data update stockout", error);
       }
