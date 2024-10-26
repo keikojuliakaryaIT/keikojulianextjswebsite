@@ -395,7 +395,11 @@ export default function HomePos() {
                         {carts?.map((data) => (
                           <div key={data.id} className="flex justify-between">
                             <div>
-                              <p>{data.nameProduct??data.idProduct}</p>
+                              <p>
+                                {data.nameProduct !== "-"
+                                  ? data.nameProduct
+                                  : data.idProduct}
+                              </p>
                             </div>
                             <div>
                               <p>{data.stockOut?.toString()}</p>

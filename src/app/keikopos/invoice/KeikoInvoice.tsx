@@ -325,7 +325,9 @@ const KeikoInvoice = ({
                     <Text
                       style={{ width: "55%", fontFamily: "OpenSansRegular" }}
                     >
-                      {data.nameProduct ?? data.idProduct}
+                      {data.nameProduct !== "-"
+                        ? data.nameProduct
+                        : data.idProduct}
                     </Text>
                     <Text
                       style={{
