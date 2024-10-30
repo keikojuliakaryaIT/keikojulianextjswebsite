@@ -217,7 +217,6 @@ export default function HomePos() {
     const { result, error } = await createData(`Sale/POS/Orders`, data);
     if (!error) {
       toast.success("Add Product successful!");
-      console.log("result add Order ", result?.id);
       let resultid = result?.id;
       try {
         carts?.map((data) => {
