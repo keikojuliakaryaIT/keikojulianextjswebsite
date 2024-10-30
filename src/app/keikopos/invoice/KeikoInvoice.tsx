@@ -264,7 +264,12 @@ const KeikoInvoice = ({
           </View>
           <View>
             <Text>Invoice NO : {customer.invoice}</Text>
-            <Text>Date : {new Date().toLocaleDateString()}</Text>
+            <Text>
+              Date :{" "}
+              {customer.saleDate
+                ? new Date(customer.saleDate).toLocaleDateString()
+                : new Date().toLocaleDateString()}
+            </Text>
           </View>
         </View>
         <View style={{}}>

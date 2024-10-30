@@ -210,6 +210,7 @@ export default function HomePos() {
       customer: {
         ...customer,
         invoice: `51${customer.codeSale}${settings.InvoiceNumber.toString()}`,
+        saleDate: new Date().valueOf(),
       },
       carts: carts,
     };
@@ -217,7 +218,7 @@ export default function HomePos() {
     if (!error) {
       toast.success("Add Product successful!");
       console.log("result add Order ", result?.id);
-			let resultid = result?.id;
+      let resultid = result?.id;
       try {
         carts?.map((data) => {
           pushDataStockOut(data);
