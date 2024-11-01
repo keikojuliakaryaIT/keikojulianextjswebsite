@@ -29,8 +29,7 @@ import {
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa";
-import { users } from "./data";
+import { FaPlus } from "react-icons/fa";	
 import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
@@ -541,7 +540,7 @@ export default function AdminKeikoPos() {
                     </div>
                     <h2>List Items</h2>
                     <div className="p-2 border-1 rounded-sm">
-                      {selectedItem.carts?.map((data) => (
+                      {selectedItem.carts?.map((data:any) => (
                         <div
                           key={data.id}
                           className="flex justify-between border-b-1"
