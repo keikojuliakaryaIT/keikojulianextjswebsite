@@ -414,9 +414,9 @@ export default function HomePos() {
                     <Button color="danger" variant="light" onPress={onClose}>
                       Cancel
                     </Button>
-                    <Button color="danger" onPress={() => createOrder(carts)}>
+                    {/* <Button color="danger" onPress={() => createOrder(carts)}>
                       Create Order
-                    </Button>
+                    </Button> */}
                     <Button
                       color="secondary"
                       onPress={createInvoice}

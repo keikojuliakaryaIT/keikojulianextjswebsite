@@ -267,7 +267,7 @@ const KeikoInvoice = ({
             <Text>
               Date :{" "}
               {customer.saleDate
-                ? new Date(customer.saleDate).toLocaleDateString()
+                ? new Date(Number(customer.saleDate)).toLocaleDateString()
                 : new Date().toLocaleDateString()}
             </Text>
           </View>
