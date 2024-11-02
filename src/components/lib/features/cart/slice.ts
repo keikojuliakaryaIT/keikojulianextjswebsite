@@ -45,6 +45,7 @@ export const cartSlice = createSlice({
     ) => {
       let temp = [...state.items];
       temp[action.payload?.index].stockOut = Number(action.payload?.value);
+			console.log('temp ',temp)
       state.items = temp;
     },
     deleteStock: (state, action: PayloadAction<any>) => {

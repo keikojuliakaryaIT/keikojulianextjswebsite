@@ -53,6 +53,7 @@ export default function HomePos() {
   });
   const router = useRouter();
   const [settings, setSettings] = useState<any>();
+  const [update, setUpdate] = useState(false);
 
   const getDataProducts = useCallback(async () => {
     // 4zvL76bmXRCo44WSSfIl
@@ -78,7 +79,7 @@ export default function HomePos() {
     );
 
     if (!error) {
-      console.log("results ", result);
+      // console.log("results ", result);
       setSettings(result);
     } else {
       return toast("ERROR, Please Try Again !");
@@ -131,8 +132,13 @@ export default function HomePos() {
       toast.error("Stock is not enough", {
         duration: 1000,
       });
+    } else if (Number(value) <= 0) {
+      toast.error("Number Is Minus", {
+        duration: 1000,
+      });
     } else {
       dispatch(changeStock({ index, value }));
+      // setUpdate(true);
     }
   }
   function alertDelete(data: any) {
@@ -270,6 +276,27 @@ export default function HomePos() {
     });
     return SGDollar.format(price);
   }
+
+  const subTotal = useMemo(() => {
+    let total = 0;
+    if (carts) {
+      carts.forEach((item) => {
+        total += Number(item.priceSG) * Number(item.stockOut);
+      });
+    }
+    return total;
+  }, [carts]);
+  const taxPrice = useMemo(() => {
+    // setUpdate(false);
+    let tax = (9 / 100) * subTotal;
+    return tax;
+  }, [subTotal]);
+  const grandTotal = useMemo(() => {
+    let total = subTotal;
+    // setUpdate(false);
+    let discount = (Number(customer.discount) / 100) * subTotal;
+    return total - discount + taxPrice;
+  }, [customer.discount, subTotal, taxPrice]);
   return (
     <div className="flex w-full px-5">
       <Modal
@@ -348,19 +375,6 @@ export default function HomePos() {
                         onValueChange={(datas) =>
                           setCustomer((prev) => {
                             return { ...prev, address: datas };
-                          })
-                        }
-                      />
-                      <Input
-                        isRequired
-                        label="Discount"
-                        labelPlacement="outside"
-                        type="number"
-                        variant="bordered"
-                        value={customer.discount}
-                        onValueChange={(datas) =>
-                          setCustomer((prev) => {
-                            return { ...prev, discount: datas };
                           })
                         }
                       />
@@ -536,6 +550,22 @@ export default function HomePos() {
           })}
         </div>
         <div>
+          <div>Sub Total Price : {convertCurrency(subTotal)}</div>
+          <Input
+            // isRequired
+            label="Discount"
+            labelPlacement="outside-left"
+            type="number"
+            variant="bordered"
+            value={customer.discount}
+            onValueChange={(datas) =>
+              setCustomer((prev) => {
+                return { ...prev, discount: datas };
+              })
+            }
+          />
+          <div>Tax Price : {convertCurrency(taxPrice)}</div>
+          <div>Total Price : {convertCurrency(grandTotal)}</div>
           <Button
             fullWidth
             radius="sm"
