@@ -288,9 +288,11 @@ export default function HomePos() {
   }, [carts]);
   const taxPrice = useMemo(() => {
     // setUpdate(false);
-    let tax = (9 / 100) * subTotal;
+
+    let discount = (Number(customer.discount) / 100) * subTotal;
+    let tax = 0.09 * (subTotal + discount);
     return tax;
-  }, [subTotal]);
+  }, [customer.discount, subTotal]);
   const grandTotal = useMemo(() => {
     let total = subTotal;
     // setUpdate(false);
