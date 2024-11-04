@@ -1,6 +1,7 @@
 {
   "hosting": {
     "source": ".",
+		"site": "keikojulia",
     "ignore": [
       "firebase.json",
       "**/.*",
