@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       service: "Hostinger",
       host: "smtp.hostinger.com",
       secure: true,
-      port: 465, // atau 587 secure: true, // atau false jika menggunakan port 587
+      port: 465, 
       debug: true,
       auth: { user: "admin@keikojulia.com", pass: "^+v4[EBTJYs1" },
     });
