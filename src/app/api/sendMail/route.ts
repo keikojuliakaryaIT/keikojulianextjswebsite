@@ -5,26 +5,6 @@ import nodemailer from "nodemailer";
 export async function POST(request: Request) {
   try {
     const { name, email, message, attachment } = await request.json();
-    // const transporter = nodemailer.createTransport({
-    //   host: SMTP_SERVER_HOST,
-    //   secure: false,
-    //   // secureConnection: false,
-    //   port: 587,
-    //   debug: true,
-    //   connectionTimeout: 10000,
-    //   auth: {
-    //     user: SMTP_SERVER_USERNAME,
-    //     pass: SMTP_SERVER_PASSWORD,
-    //   },
-    // });
-    // const transporter = nodemailer.createTransport({
-    //   service: "Gmail",
-    //   host: "smtp.gmail.com",
-    //   secure: true,
-    //   port: 465, // atau 587 secure: true, // atau false jika menggunakan port 587
-    //   debug: true,
-    //   auth: { user: "aryadaulat@gmail.com", pass: "qany svws vnmf pdkg" },
-    // });
 		const transporter = nodemailer.createTransport({
       service: "Hostinger",
       host: "smtp.hostinger.com",
