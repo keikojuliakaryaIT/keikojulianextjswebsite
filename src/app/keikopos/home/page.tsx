@@ -49,7 +49,7 @@ export default function HomePos() {
     address: "",
     staffPayment: "",
     codeSale: "",
-    discount: "",
+    discount: "0",
   });
   const router = useRouter();
   const [settings, setSettings] = useState<any>();
@@ -549,23 +549,40 @@ export default function HomePos() {
             }
           })}
         </div>
-        <div>
-          <div>Sub Total Price : {convertCurrency(subTotal)}</div>
-          <Input
-            // isRequired
-            label="Discount"
-            labelPlacement="outside-left"
-            type="number"
-            variant="bordered"
-            value={customer.discount}
-            onValueChange={(datas) =>
-              setCustomer((prev) => {
-                return { ...prev, discount: datas };
-              })
-            }
-          />
-          <div>Tax Price : {convertCurrency(taxPrice)}</div>
-          <div>Total Price : {convertCurrency(grandTotal)}</div>
+        <div className="px-2">
+          <div className="flex justify-between">
+            <div>Sub Total Price : </div>
+            <div>{convertCurrency(subTotal)}</div>
+          </div>
+          <div className="flex justify-between items-center">
+            <div>Discount : </div>
+            <div>
+              <Input
+                // isRequired
+                // label="Discount"
+                labelPlacement="outside-left"
+                type="number"
+                variant="bordered"
+                value={customer.discount}
+                onValueChange={(datas) =>
+                  setCustomer((prev) => {
+                    return { ...prev, discount: datas };
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          {/* <div>Tax Price : {convertCurrency(taxPrice)}</div> */}
+          <div className="flex justify-between">
+            <div>Tax Price : </div>
+            <div>{convertCurrency(taxPrice)}</div>
+          </div>
+          {/* <div>Total Price : {convertCurrency(grandTotal)}</div> */}
+          <div className="flex justify-between">
+            <div>Total Price : </div>
+            <div>{convertCurrency(grandTotal)}</div>
+          </div>
           <Button
             fullWidth
             radius="sm"

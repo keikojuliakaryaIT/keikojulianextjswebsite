@@ -26,13 +26,21 @@ export async function POST(request: Request) {
     //     pass: SMTP_SERVER_PASSWORD,
     //   },
     // });
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      host: "smtp.gmail.com",
+    // const transporter = nodemailer.createTransport({
+    //   service: "Gmail",
+    //   host: "smtp.gmail.com",
+    //   secure: true,
+    //   port: 465, // atau 587 secure: true, // atau false jika menggunakan port 587
+    //   debug: true,
+    //   auth: { user: "aryadaulat@gmail.com", pass: "qany svws vnmf pdkg" },
+    // });
+		const transporter = nodemailer.createTransport({
+      service: "Hostinger",
+      host: "smtp.hostinger.com",
       secure: true,
       port: 465, // atau 587 secure: true, // atau false jika menggunakan port 587
       debug: true,
-      auth: { user: "aryadaulat@gmail.com", pass: "qany svws vnmf pdkg" },
+      auth: { user: "admin@keikojulia.com", pass: "^+v4[EBTJYs1" },
     });
     transporter.verify(function (error, success) {
       if (error) {
@@ -43,15 +51,16 @@ export async function POST(request: Request) {
     });
 
     const mailOptions = {
-      from: "aryadaulat@gmail.com",
-      to: "arya.118140128@student.itera.ac.id",
-      subject: "New message from your-website",
+      from: "admin@keikojulia.com",
+      to: email,
+      subject: "Keiko Julia Invoice",
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
       attachments: [
         {
           filename: attachment.name, // Name of the attachment
           content: attachment.data, // Content of the attachment (Base64 or Buffer)
-          contentType: attachment.type, // MIME type of the attachment (e.g., 'application/pdf', 'image/jpeg')
+          encoding: 'base64',
+					contentType: attachment.type, // MIME type of the attachment (e.g., 'application/pdf', 'image/jpeg')
         },
       ],
     };
