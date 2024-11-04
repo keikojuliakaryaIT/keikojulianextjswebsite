@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-const SMTP_SERVER_USERNAME = process.env.SMTP_SERVER_USERNAME;
-const SMTP_SERVER_PASSWORD = process.env.SMTP_SERVER_PASSWORD;
-const SMTP_SERVER_HOST = process.env.SMTP_SERVER_HOST;
 
 export async function POST(request: Request) {
   try {
     const { name, email, message, attachment } = await request.json();
-    console.log(
-      "username ",
-      SMTP_SERVER_USERNAME,
-      " password ",
-      SMTP_SERVER_PASSWORD
-    );
     // const transporter = nodemailer.createTransport({
     //   host: SMTP_SERVER_HOST,
     //   secure: false,
