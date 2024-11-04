@@ -4,11 +4,12 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyAqvT0yoTZ9UyZdR4ZKkwpoC1KYbwVR8SE",
   authDomain: "keikojuliakarya.firebaseapp.com",
+  databaseURL: "https://keikojuliakarya-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "keikojuliakarya",
-  storageBucket: "keikojuliakarya.appspot.com",
+  storageBucket: "keikojuliakarya.firebasestorage.app",
   messagingSenderId: "61722569099",
   appId: "1:61722569099:web:1cf83f102cac885263e78e",
-  measurementId: "G-RJZ0E2YX5H",
+  measurementId: "G-RJZ0E2YX5H"
 };
 
 const app = initializeApp(firebaseConfig);
