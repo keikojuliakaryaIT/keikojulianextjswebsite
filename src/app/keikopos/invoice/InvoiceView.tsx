@@ -70,7 +70,6 @@ export default function InvoicePage({
       reader.onloadend = () => {
         // The result is a Base64 string prefixed with "data:application/pdf;base64,"
         const result = reader.result as string; // Type assertion
-        // The result is a Base64 string prefixed with "data:application/pdf;base64,"
         const base64String = result.split(",")[1]; // Get the Base64 part
         resolve(base64String);
       };
