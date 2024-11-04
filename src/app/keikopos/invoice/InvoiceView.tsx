@@ -43,7 +43,6 @@ export default function InvoicePage({
       });
     }
     pricing -= pricing * (Number(customer.discount) / 100);
-    pricing += pricing * 0.09;
     setgrandTotal(pricing);
   }, [carts, customer.discount]);
 
@@ -150,11 +149,7 @@ export default function InvoicePage({
           </button>
         </PDFDownloadLink>
         <button
-          className={`p-5 border-2 rounded-md ml-20 ${
-            disabledSendMail
-              ? "bg-gray-500 text-white"
-              : "bg-red-500 text-white"
-          }  font-bold`}
+          className={`p-5 border-2 rounded-md ml-20 ${disabledSendMail ? 'bg-gray-500 text-white':'bg-red-500 text-white'}  font-bold`}
           onClick={sendMails}
           disabled={disabledSendMail}
         >
