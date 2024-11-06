@@ -85,7 +85,7 @@ const baseLocation = [
 ];
 
 export default function Operational() {
-  const [onRefresh, setOnRefresh] = useState(false);
+  const [onRefresh, setOnRefresh] = useState(true);
   const defaultDate = today("asia/singapore");
   const [orderDate, setOrderDate] = useState(defaultDate);
   const [arrivalDate, setArrivalDate] = useState(defaultDate);
@@ -109,7 +109,7 @@ export default function Operational() {
   const [selectedPlatform, setSelectedPlatform] = useState<any>();
   const [selectedLocation, setSelectedLocation] = useState<any>();
   const [stockProduct, setStockProduct] = useState(0);
-  const [price, setPrice] = useState<string|number>(0);
+  const [price, setPrice] = useState<string | number>(0);
   const [notes, setNotes] = useState("");
 
   async function pushDataStock() {
@@ -133,27 +133,19 @@ export default function Operational() {
       if (!error) {
         delete findData.id;
         delete findData.nomor;
-        console.log("selected location ", selectedLocation);
-        console.log("stock ", findData.stock_id);
         if (selectedLocation === "Indonesia") {
           if (findData.stock_id !== undefined) {
-            console.log("masuk 	if stock_id");
             findData.stock_id += stockProduct;
           } else {
-            console.log("masuk esle stock_id");
             findData.stock_id = stockProduct;
           }
         } else {
           if (findData.stock_sg !== undefined) {
-            console.log("masuk 	if stock_sg");
             findData.stock_sg += stockProduct;
           } else {
-            console.log("masuk else  stock_sg");
             findData.stock_sg = stockProduct;
           }
         }
-        console.log("selected product ", selectedProduct);
-        console.log("selectedProducts ", findData);
 
         const { result, error } = await updateData(
           "Inventory/Storage/Products",
@@ -161,17 +153,17 @@ export default function Operational() {
           findData
         );
         if (!error) {
-          // setselectedProduct("");
-          // setselectedClient(undefined);
-          // setselectedStaff(undefined);
-          // setNotes("");
-          // setStockProduct(0);
-          // setPrice(0);
-          // setSelectedLocation(undefined);
-          // setselectedStatus(undefined);
+          setselectedProduct("");
+          setselectedClient(undefined);
+          setselectedStaff(undefined);
+          setNotes("");
+          setStockProduct(0);
+          setPrice(0);
+          setSelectedLocation(undefined);
+          setselectedStatus(undefined);
           toast.success("Add Stock In Succesful");
-
-          console.log("result update Data berhasil");
+          onClose();
+          setOnRefresh(true);
         }
       } else {
         console.log("error add data stock ", error);
@@ -229,6 +221,7 @@ export default function Operational() {
           setPrice(0);
           toast.success("Add Stock Out Succesful");
           setStockProduct(0);
+          setOnRefresh(true);
         }
       } else {
         console.log("error add data stock ", error);
@@ -495,9 +488,7 @@ export default function Operational() {
                               placeholder="Please enter price"
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>
-                                setPrice(
-                                  (value !== undefined ? value : 0)
-                                )
+                                setPrice(value !== undefined ? value : 0)
                               }
                             />
                           </div>
@@ -722,9 +713,7 @@ export default function Operational() {
                               placeholder="Please enter price"
                               className="bg-gray-100 py-2 px-1 rounded-md w-full"
                               onValueChange={(value) =>
-                                setPrice(
-                                  (value !== undefined ? value : 0)
-                                )
+                                setPrice(value !== undefined ? value : 0)
                               }
                             />
                           </div>
@@ -867,20 +856,15 @@ export default function Operational() {
   }, []);
 
   useEffect(() => {
-    setOnRefresh(true);
-    getDataClient();
-    getDataProducts();
-    getDataPIC();
-    getDataCategory();
-    getDataPlatform();
-    setOnRefresh(false);
-  }, [
-    getDataCategory,
-    getDataClient,
-    getDataPIC,
-    getDataPlatform,
-    getDataProducts,
-  ]);
+    if (onRefresh) {
+      getDataClient();
+      getDataProducts();
+      getDataPIC();
+      getDataCategory();
+      getDataPlatform();
+			setOnRefresh(false);
+    }
+  }, [getDataCategory, getDataClient, getDataPIC, getDataPlatform, getDataProducts, onRefresh]);
 
   return (
     <div className="flex flex-col p-5">

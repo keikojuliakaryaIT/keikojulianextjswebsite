@@ -79,7 +79,6 @@ export default function HomePos() {
     );
 
     if (!error) {
-      // console.log("results ", result);
       setSettings(result);
     } else {
       return toast("ERROR, Please Try Again !");
@@ -92,9 +91,6 @@ export default function HomePos() {
     getPOSSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // useEffect(() => {
-  //   console.log("carts ", carts);
-  // }, [carts]);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -158,12 +154,8 @@ export default function HomePos() {
       duration: 1000,
     });
   }
-  async function createOrder(item: any) {
-    console.log("item ", item);
-  }
 
   async function pushDataStockOut(item: any) {
-    console.log("item ", item);
     let findData = { ...item };
     let productId = item.id;
     if (findData) {
@@ -175,8 +167,8 @@ export default function HomePos() {
         platform: `Event-${customer.codeSale}`,
         stockProduct: Number(findData?.stockOut),
         PIC: customer.staffPayment,
-        OrderData: new Date().valueOf(),
-        ArrivalData: new Date().valueOf(),
+        OrderData: item.customer.saleDate,
+        ArrivalData: item.customer.saleDate,
         price: Number(findData.priceSG),
         note: "",
       });
@@ -211,6 +203,7 @@ export default function HomePos() {
     // window.localStorage.setItem("customer", JSON.stringify(customer));
     // window.localStorage.setItem("carts", JSON.stringify(carts));
     // dispatch(changeCustomerData(customer));
+		
     const data = {
       location: "testingEvent",
       customer: {

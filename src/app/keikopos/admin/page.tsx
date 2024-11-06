@@ -29,7 +29,7 @@ import {
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa";	
+import { FaPlus } from "react-icons/fa";
 import getDataCollection from "@/components/firebase/getDataCollection";
 import { toast } from "sonner";
 import createData from "@/components/firebase/createData";
@@ -80,7 +80,7 @@ type ProductItem = {
 };
 
 export default function AdminKeikoPos() {
-  const [onRefresh, setOnRefresh] = useState(false);
+  const [onRefresh, setOnRefresh] = useState(true);
   const [filterValue, setFilterValue] = useState("");
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [modal, setModalRender] = React.useState("add");
@@ -131,6 +131,8 @@ export default function AdminKeikoPos() {
   );
   const [type, setType] = useState<[{ id: string; type: string }]>();
   const [defaultProduct, setDefaultProduct] = useState<any>();
+  const [inventory, setDefaultInventory] = useState<any>();
+  const [stockOut, setDefaultStockOut] = useState<any>();
   const pages = Math.ceil(defaultProduct?.length / rowsPerPage);
   const [location, setlocation] = useState<string>("");
   const router = useRouter();
@@ -149,17 +151,48 @@ export default function AdminKeikoPos() {
 
     if (!error) {
       setDefaultProduct(result);
-      console.log("result get data ", result);
+    } else {
+      return toast("ERROR, Please Try Again !");
+    }
+  }, []);
+  const getDataInventory = useCallback(async () => {
+    const { result, error } = await getDataCollection(
+      `Inventory/Storage/Products`
+    );
+
+    if (!error) {
+      setDefaultInventory(result);
+    } else {
+      return toast("ERROR, Please Try Again !");
+    }
+    setOnRefresh(false);
+  }, []);
+  const getDataStockOut = useCallback(async () => {
+    const { result, error } = await getDataCollection(
+      `Inventory/Storage/StockOut`
+    );
+
+    if (!error) {
+      setDefaultStockOut(result);
     } else {
       return toast("ERROR, Please Try Again !");
     }
     setOnRefresh(false);
   }, []);
   useEffect(() => {
-    setOnRefresh(true);
-    getDataType();
-    getDataOrders();
-  }, [getDataOrders, getDataType]);
+    if (onRefresh) {
+      getDataType();
+      getDataOrders();
+      getDataInventory();
+      getDataStockOut();
+    }
+  }, [
+    getDataInventory,
+    getDataOrders,
+    getDataStockOut,
+    getDataType,
+    onRefresh,
+  ]);
 
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
@@ -440,23 +473,89 @@ export default function AdminKeikoPos() {
     });
   };
 
-  const deleteProduct = useCallback(async (datas: any) => {
-    let data = { ...datas };
-    let id = data.id;
-    delete data.id;
-    delete data.nomor;
-    data.visible = false;
-    const { result, error } = await updateData(
-      "Inventory/Storage/Products",
-      id,
-      data
-    );
-    if (!error) {
-      toast.success("Delete Product successful!");
-    } else {
-      toast.error("Delete Product failed!");
-    }
-  }, []);
+  const deleteProduct = useCallback(
+    async (datas: any) => {
+      datas.carts
+        .map(async (data: any) => {
+          let find = inventory.find(
+            (item: any) => item.idProduct === data.idProduct
+          );
+          let newData = { ...find };
+          newData.stock_sg += data.stockOut;
+          delete newData.id;
+          delete newData.nomor;
+          const { result, error } = await updateData(
+            "Inventory/Storage/Products",
+            find.id,
+            newData
+          );
+          if (!error) {
+            toast.success("Update Stock Product successful!");
+            let findStockOut = stockOut.find((item: any) => {
+              if (
+                item.idProduct === data.idProduct &&
+                item.ArrivalData === datas.customer.saleDate
+              ) {
+                return true;
+              } else {
+                return false;
+              }
+            });
+            let newDataStockOut = { ...findStockOut };
+            newDataStockOut.visible = false;
+            delete newData.id;
+            delete newData.nomor;
+            const { result, error } = await updateData(
+              "Inventory/Storage/StockOut",
+              findStockOut.id,
+              newDataStockOut
+            );
+            if (!error) {
+              toast.success("Update Stock Product successful!");
+            } else {
+              toast.error("Update Stock Product failed!");
+            }
+          } else {
+            toast.error("Update Stock Product failed!");
+          }
+        })
+        .then(async () => {
+          let newDataOrders = { ...datas };
+          newDataOrders.visible = false;
+          delete newDataOrders.id;
+          delete newDataOrders.nomor;
+          const { result, error } = await updateData(
+            "Sale/POS/Orders",
+            datas.id,
+            newDataOrders
+          );
+          if (!error) {
+            toast.success("Update Orders successful!");
+            setOnRefresh(true);
+            onClose();
+          } else {
+            toast.error("Update Orders failed!");
+          }
+        });
+
+      // let data = { ...datas };
+      // let id = data.id;
+      // delete data.id;
+      // delete data.nomor;
+      // data.visible = false;
+      // const { result, error } = await updateData(
+      //   "Inventory/Storage/Products",
+      //   id,
+      //   data
+      // );
+      // if (!error) {
+      //   toast.success("Delete Product successful!");
+      // } else {
+      //   toast.error("Delete Product failed!");
+      // }
+    },
+    [inventory, onClose, stockOut]
+  );
   const updateProduct = useCallback(async (datas: any) => {
     let data = { ...datas };
     let id = data.id;
@@ -540,7 +639,7 @@ export default function AdminKeikoPos() {
                     </div>
                     <h2>List Items</h2>
                     <div className="p-2 border-1 rounded-sm">
-                      {selectedItem.carts?.map((data:any) => (
+                      {selectedItem.carts?.map((data: any) => (
                         <div
                           key={data.id}
                           className="flex justify-between border-b-1"
@@ -620,7 +719,7 @@ export default function AdminKeikoPos() {
                     Delete Products
                   </ModalHeader>
                   <ModalBody>
-                    <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p>
+                    <p>{`Are you sure delete data ${selectedItem?.customer.name} ${selectedItem?.customer.invoice} ?`}</p>
                   </ModalBody>
                   <ModalFooter>
                     <Button
@@ -1071,7 +1170,7 @@ export default function AdminKeikoPos() {
                 <Tooltip color="danger" content="Delete user">
                   <span
                     className="text-lg text-danger cursor-pointer active:opacity-50"
-                    // onClick={() => onDelete(item)}
+                    onClick={() => onDelete(item)}
                   >
                     <MdDeleteForever />
                   </span>
@@ -1121,7 +1220,7 @@ export default function AdminKeikoPos() {
                     {renderBody({
                       item: item,
                       columnKey: columnKey,
-                      // onDelete: (item) => openDelete(item),
+                      onDelete: (item) => openDelete(item),
                       onDetail: (item) => openDetail(item),
                       // onBarcode: (item) => openBarcode(item),
                       // onEdit: (item) => openEdit(item),
