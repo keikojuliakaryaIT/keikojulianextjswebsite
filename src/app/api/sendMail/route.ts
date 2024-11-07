@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       secure: true,
       port: 465, 
       debug: true,
-      auth: { user: "admin@keikojulia.com", pass: "^+v4[EBTJYs1" },
+      auth: { user: "admin@keikojulia.com", pass: "woQsev-nafda0-ribdyf" },
     });
     transporter.verify(function (error, success) {
       if (error) {
