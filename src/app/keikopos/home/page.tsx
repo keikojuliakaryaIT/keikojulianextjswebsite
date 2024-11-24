@@ -155,7 +155,7 @@ export default function HomePos() {
     });
   }
 
-  async function pushDataStockOut(item: any) {
+  async function pushDataStockOut(item: any,saleDates:any) {
     let findData = { ...item };
     let productId = item.id;
     if (findData) {
@@ -167,8 +167,8 @@ export default function HomePos() {
         platform: `Event-${customer.codeSale}`,
         stockProduct: Number(findData?.stockOut),
         PIC: customer.staffPayment,
-        OrderData: item.customer.saleDate,
-        ArrivalData: item.customer.saleDate,
+        OrderData: saleDates,
+        ArrivalData: saleDates,
         price: Number(findData.priceSG),
         note: "",
       });
@@ -203,23 +203,24 @@ export default function HomePos() {
     // window.localStorage.setItem("customer", JSON.stringify(customer));
     // window.localStorage.setItem("carts", JSON.stringify(carts));
     // dispatch(changeCustomerData(customer));
-		
+		let saleDates= 1729849825790;
     const data = {
       location: "testingEvent",
       customer: {
         ...customer,
         invoice: `51${customer.codeSale}${settings.InvoiceNumber.toString()}`,
-        saleDate: new Date().valueOf(),
+        saleDate: saleDates,
       },
       carts: carts,
     };
+		
     const { result, error } = await createData(`Sale/POS/Orders`, data);
     if (!error) {
       toast.success("Add Product successful!");
       let resultid = result?.id;
       try {
         carts?.map((data) => {
-          pushDataStockOut(data);
+          pushDataStockOut(data,saleDates);
         });
         getDataProducts();
         const { result, error } = await updateData(
@@ -283,7 +284,8 @@ export default function HomePos() {
     // setUpdate(false);
 
     let discount = (Number(customer.discount) / 100) * subTotal;
-    let tax = 0.09 * (subTotal + discount);
+    console.log("discount ", discount ,' sub total ',subTotal , ' total ', subTotal-discount);
+    let tax = 0.09 * (subTotal - discount);
     return tax;
   }, [customer.discount, subTotal]);
   const grandTotal = useMemo(() => {

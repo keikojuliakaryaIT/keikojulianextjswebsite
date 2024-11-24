@@ -2,13 +2,6 @@
   "name": "keikojuliakarya",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "export": "next export"
-  },
   "dependencies": {
     "@nextui-org/react": "^2.4.7",
     "@nextui-org/theme": "^2.2.10",
@@ -16,7 +9,6 @@
     "@reduxjs/toolkit": "^2.3.0",
     "axios": "^1.7.7",
     "firebase": "^10.13.0",
-    "firebase-functions": "^6.1.0",
     "firebase-tools": "^13.23.1",
     "framer-motion": "^11.3.30",
     "html2canvas": "^1.4.1",
@@ -34,23 +26,14 @@
     "react-jsbarcode": "^1.0.1",
     "react-redux": "^9.1.2",
     "react-toastify": "^10.0.5",
-    "serve": "^14.2.4",
     "sonner": "^1.5.0",
-    "use-file-picker": "^2.1.2"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/nodemailer": "^6.4.16",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.7",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "firebase-frameworks": "^0.11.0",
+    "firebase-functions": "^6.0.1",
+    "firebase-admin": "^11.11.1"
   },
   "packageManager": "yarn@4.4.1+sha512.f825273d0689cc9ead3259c14998037662f1dcd06912637b21a450e8da7cfeb4b1965bbee73d16927baa1201054126bc385c6f43ff4aa705c8631d26e12460f1",
+  "main": "server.js",
   "engines": {
-    "node": "22"
+    "node": "20"
   }
 }

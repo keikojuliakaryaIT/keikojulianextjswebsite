@@ -1,10 +1,13 @@
 {
   "hosting": {
     "source": ".",
+		"site": "keikojulia",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+			"./src/app/api/node_modules/**",
+			"./src/app/**/*.js"
     ],
     "frameworksBackend": {
       "region": "asia-east1"
@@ -14,23 +17,6 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
-    }
-  ],
   "storage": {
     "rules": "storage.rules"
   }

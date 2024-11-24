@@ -25,9 +25,9 @@ const initialState: CartState = {
     address: "",
   },
 	companyPayment:{
-		name:'Keiko Julia',
+		name:'Keiko Julia Pte Ltd',
 		Uennumber:'202327971C',
-		address:'34 boon leat terrace #04-19B S119866'
+		address:'34 Boon Leat Terrace #04-19B S119866'
 	}
 };
 

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "./lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+		"esModuleInterop": true,
+  },
+  "compileOnSave": true,
+	"include": [
+    "**/*.ts", // Include all TypeScript files in the project
+    "**/*.tsx"  // Include all TypeScript React files if you have any
+, "lib/route.js"  ],
+	"exclude": [
+    "node_modules", // Exclude node_modules
+    "lib"           // Exclude the output directory
+  ]
+}

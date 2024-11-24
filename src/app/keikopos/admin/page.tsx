@@ -501,7 +501,8 @@ export default function AdminKeikoPos() {
                 return false;
               }
             });
-            let newDataStockOut = { ...findStockOut };
+						console.log('findSctockOut ',findStockOut)
+            let newDataStockOut = { ...findStockOut};
             newDataStockOut.visible = false;
             delete newData.id;
             delete newData.nomor;

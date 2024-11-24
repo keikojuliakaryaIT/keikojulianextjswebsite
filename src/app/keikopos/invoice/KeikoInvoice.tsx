@@ -190,13 +190,13 @@ const KeikoInvoice = ({
               >
                 {customer.name}
               </Text>
-              <Text
+              {/* <Text
                 style={{
                   fontFamily: "OpenSansRegular",
                 }}
               >
                 {customer.email}
-              </Text>
+              </Text> */}
 
               {customer.name !== "" ? (
                 <Text
@@ -310,7 +310,7 @@ const KeikoInvoice = ({
                     >
                       {data.nameProduct !== "-"
                         ? data.nameProduct
-                        : data.idProduct}
+                        : data.idProduct} ({data.type})
                     </Text>
                     <Text
                       style={{
@@ -367,6 +367,7 @@ const KeikoInvoice = ({
                 }}
               >
                 {convertCurrency(totalPrice)}
+								
               </Text>
               {Number(customer.discount) !== 0 ? (
                 <View style={{ flexDirection: "row" }}>
@@ -405,7 +406,9 @@ const KeikoInvoice = ({
                     fontFamily: "OpenSansRegular",
                   }}
                 >
+                  {/* {convertCurrency(grandTotal)} */}
                   {convertCurrency(grandTotal * 0.09 + grandTotal)}
+									{/* $851.70 */}
                 </Text>
               </View>
             </View>

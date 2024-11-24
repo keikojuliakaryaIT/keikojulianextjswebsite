@@ -1,11 +1,13 @@
 "use client";
 import {
   Button,
+  Checkbox,
   CircularProgress,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  Image,
   Input,
   Modal,
   ModalBody,
@@ -27,7 +29,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaCheck, FaSearch } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa";
 import { users } from "./data";
@@ -42,6 +44,8 @@ import updateData from "@/components/firebase/updateData";
 import CurrencyInput from "react-currency-input-field";
 import html2canvas from "html2canvas";
 import { ReactBarcode } from "react-jsbarcode";
+import { useFilePicker } from "use-file-picker";
+import uploadFoto from "@/components/firebase/uploadFoto";
 
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
@@ -71,10 +75,11 @@ type ProductItem = {
   notes: string;
   image: string;
   status: "Available" | "Not Available" | "Out Of Stock";
+  certificate: boolean;
 };
 
 export default function HomeDashboard() {
-  const [onRefresh, setOnRefresh] = useState(false);
+  const [onRefresh, setOnRefresh] = useState(true);
   const [filterValue, setFilterValue] = useState("");
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [modal, setModalRender] = React.useState("add");
@@ -99,6 +104,23 @@ export default function HomeDashboard() {
     notes: "",
     image: "",
     status: "Available",
+    certificate: false,
+  });
+
+  const { openFilePicker, filesContent, plainFiles, clear } = useFilePicker({
+    readAs: "DataURL",
+    accept: "image/*",
+    multiple: false,
+    onFilesRejected: ({ errors }) => {
+      // this callback is called when there were validation errors
+      // console.log("onFilesRejected", errors);
+      toast.error(`Add Image Rejected ${errors}`);
+    },
+    onFilesSuccessfullySelected: ({ plainFiles }) => {
+      // this callback is called when there were no validation errors
+      // console.log("onFilesSuccessfullySelected", plainFiles, filesContent);
+      toast.success(`Add Image ${plainFiles[0].name} successful!`);
+    },
   });
 
   const statusOptions = useMemo(
@@ -147,13 +169,14 @@ export default function HomeDashboard() {
     } else {
       return toast("ERROR, Please Try Again !");
     }
-    setOnRefresh(false);
   }, []);
   useEffect(() => {
-    setOnRefresh(true);
-    getDataType();
-    getDataProducts();
-  }, [getDataProducts, getDataType]);
+    if (onRefresh) {
+      getDataType();
+      getDataProducts();
+    }
+    setOnRefresh(false);
+  }, [getDataProducts, getDataType, onRefresh]);
 
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
@@ -408,21 +431,34 @@ export default function HomeDashboard() {
     if (find) {
       return toast.warning("Product Already Exist");
     }
-    var data = { ...product };
-    data.priceSG = Number(data.priceSG);
-    data.priceID = Number(data.priceID);
-    const { result, error } = await createData(
-      `Inventory/Storage/Products`,
-      data
+    const { result, error } = await uploadFoto(
+      "InventoryProduct",
+      `inventory-${plainFiles[0].name}`,
+      filesContent[0].content
     );
-    if (!error) {
-      toast.success("Add Product successful!");
-
-      // setProduct((prev) => {
-      //   return { ...prev, idProduct: "" };
-      // });
+    if (error) {
+      console.log("error upload picture", error);
     }
-  }, [defaultProduct, product]);
+    const link_photo = result;
+    if (link_photo) {
+      var data = { ...product };
+      data.priceSG = Number(data.priceSG);
+      data.priceID = Number(data.priceID);
+      data.image = link_photo;
+      const { result, error } = await createData(
+        `Inventory/Storage/Products`,
+        data
+      );
+      if (!error) {
+        toast.success("Add Product successful!");
+        setOnRefresh(true);
+
+        // setProduct((prev) => {
+        //   return { ...prev, idProduct: "" };
+        // });
+      }
+    }
+  }, [defaultProduct, filesContent, plainFiles, product]);
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setProduct((prev) => {
@@ -450,28 +486,66 @@ export default function HomeDashboard() {
     );
     if (!error) {
       toast.success("Delete Product successful!");
+      setOnRefresh(true);
     } else {
       toast.error("Delete Product failed!");
     }
   }, []);
-  const updateProduct = useCallback(async (datas: any) => {
-    let data = { ...datas };
-    let id = data.id;
-    delete data.id;
-    delete data.nomor;
-    data.priceSG = Number(data.priceSG);
-    data.priceID = Number(data.priceID);
-    const { result, error } = await updateData(
-      "Inventory/Storage/Products",
-      id,
-      data
-    );
-    if (!error) {
-      toast.success("Update Product successful!");
-    } else {
-      toast.error("Update Product failed!");
-    }
-  }, []);
+  const updateProduct = useCallback(
+    async (datas: any) => {
+      if (plainFiles?.length > 0) {
+        const { result, error } = await uploadFoto(
+          "InventoryProduct",
+          `inventory-${plainFiles[0].name}`,
+          filesContent[0].content
+        );
+        if (error) {
+          console.log("error upload picture", error);
+        }
+        const link_photo = result;
+        if (link_photo) {
+          let data = { ...datas };
+          let id = data.id;
+          delete data.id;
+          delete data.nomor;
+          data.priceSG = Number(data.priceSG);
+          data.priceID = Number(data.priceID);
+          data.image = link_photo;
+          const { result, error } = await updateData(
+            "Inventory/Storage/Products",
+            id,
+            data
+          );
+          if (!error) {
+            toast.success("Update Product successful!");
+          } else {
+            toast.error("Update Product failed!");
+          }
+        }
+      } else {
+        let data = { ...datas };
+        let id = data.id;
+        delete data.id;
+        delete data.nomor;
+        data.priceSG = Number(data.priceSG);
+        data.priceID = Number(data.priceID);
+        const { result, error } = await updateData(
+          "Inventory/Storage/Products",
+          id,
+          data
+        );
+        if (!error) {
+          toast.success("Update Product successful!");
+        } else {
+          toast.error("Update Product failed!");
+        }
+      }
+      setOnRefresh(true);
+      onClose();
+      clear();
+    },
+    [clear, filesContent, onClose, plainFiles]
+  );
 
   const handleDownloadBarcode = async (item: any) => {
     const element = document.getElementById("printbarcode")!,
@@ -725,7 +799,60 @@ export default function HomeDashboard() {
                         })
                       }
                     />
-
+                    <div className="">
+                      <h1>
+                        Image<span className="text-red-500 ml-1">*</span>
+                      </h1>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          onClick={() => openFilePicker()}
+                          fullWidth={true}
+                          radius="sm"
+                        >
+                          {plainFiles?.length > 0
+                            ? "Choose Again"
+                            : "Choose File"}
+                        </Button>
+                        {plainFiles?.length > 0 && (
+                          <Button
+                            onClick={() => clear()}
+                            fullWidth={true}
+                            radius="sm"
+                          >
+                            Clear
+                          </Button>
+                        )}
+                        {plainFiles?.length > 0 ? (
+                          <>
+                            {plainFiles?.map((file) => (
+                              <div key={file.name}>{file.name}</div>
+                            ))}
+                          </>
+                        ) : selectedItem.image !== "" ? (
+                          <>
+                            <Image
+                              src={selectedItem.image}
+                              width={300}
+                              height={300}
+                              alt="Image Banner"
+                            />
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                    <Checkbox
+                      isSelected={selectedItem.certificate}
+                      onValueChange={(datas) =>
+                        setselectedItem((prev: any) => {
+                          return { ...prev, certificate: datas };
+                        })
+                      }
+                      classNames={{ icon: "text-black bg-white" }}
+                      icon={<FaCheck className="bg-black " />}
+                      size="lg"
+                    >
+                      Certificate
+                    </Checkbox>
                     <Textarea
                       // isRequired
                       label="Description"
@@ -745,9 +872,7 @@ export default function HomeDashboard() {
                       variant="flat"
                       onPress={() => updateProduct(selectedItem)}
                       isDisabled={
-                        !selectedItem?.idProduct ||
-                        !selectedItem?.nameProduct ||
-                        !selectedItem?.type
+                        !selectedItem?.idProduct || !selectedItem?.type
                       }
                       className="bg-greenbt text-white"
                     >
@@ -767,8 +892,12 @@ export default function HomeDashboard() {
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             placement="top-center"
-            classNames={{ base: "light text-black",wrapper:'min-h-fit' ,body:'min-h-fit'}}
-						scrollBehavior="inside"
+            classNames={{
+              base: "light text-black",
+              wrapper: "min-h-fit",
+              body: "min-h-fit",
+            }}
+            scrollBehavior="inside"
           >
             <ModalContent>
               {(onClose: any) => (
@@ -780,7 +909,7 @@ export default function HomeDashboard() {
                     <div id="printbarcode" className="max-w-fit">
                       <ReactBarcode
                         value={selectedItem?.idProduct}
-												// style={{alignItems:'center',alignSelf:'center'}}
+                        // style={{alignItems:'center',alignSelf:'center'}}
                         // renderer="image"
                       />
                       {/* <Barcode
@@ -931,6 +1060,47 @@ export default function HomeDashboard() {
                         })
                       }
                     /> */}
+                    <Checkbox
+                      isSelected={product.certificate}
+                      onValueChange={(datas) =>
+                        setProduct((prev) => {
+                          return { ...prev, certificate: datas };
+                        })
+                      }
+                      classNames={{ icon: "text-black bg-white" }}
+                      icon={<FaCheck className="bg-black " />}
+                      size="lg"
+                    >
+                      Certificate
+                    </Checkbox>
+                    <div>
+                      <h1>
+                        Image<span className="text-red-500 ml-1">*</span>
+                      </h1>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          onClick={() => openFilePicker()}
+                          fullWidth={true}
+                          radius="sm"
+                        >
+                          {plainFiles?.length > 0
+                            ? "Choose Again"
+                            : "Choose File"}
+                        </Button>
+                        {plainFiles?.length > 0 && (
+                          <Button
+                            onClick={() => clear()}
+                            fullWidth={true}
+                            radius="sm"
+                          >
+                            Clear
+                          </Button>
+                        )}
+                        {plainFiles?.map((file) => (
+                          <div key={file.name}>{file.name}</div>
+                        ))}
+                      </div>
+                    </div>
                     <Textarea
                       label="Description"
                       labelPlacement="outside"
