@@ -147,7 +147,6 @@ export default function HomeDashboard() {
   );
   const [type, setType] = useState<[{ id: string; type: string }]>();
   const [defaultProduct, setDefaultProduct] = useState<any>();
-  const pages = Math.ceil(defaultProduct?.length / rowsPerPage);
   const [location, setlocation] = useState<string>("");
 
   const getDataType = useCallback(async () => {
@@ -211,6 +210,8 @@ export default function HomeDashboard() {
     statusOptions.length,
     filterValue,
   ]);
+
+  const pages = Math.ceil(filteredItems?.length / rowsPerPage);
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -409,7 +410,7 @@ export default function HomeDashboard() {
             cursor: "bg-foreground text-background",
           }}
           color="default"
-          isDisabled={hasSearchFilter}
+          // isDisabled={hasSearchFilter}
           page={page}
           total={pages}
           variant="light"
@@ -422,7 +423,7 @@ export default function HomeDashboard() {
         </span>
       </div>
     );
-  }, [hasSearchFilter, page, pages, selectedKeys, items.length]);
+  }, [page, pages, selectedKeys, items.length]);
 
   const addProductStorage = useCallback(async () => {
     let find = defaultProduct.find(
@@ -431,33 +432,52 @@ export default function HomeDashboard() {
     if (find) {
       return toast.warning("Product Already Exist");
     }
-    const { result, error } = await uploadFoto(
-      "InventoryProduct",
-      `inventory-${plainFiles[0].name}`,
-      filesContent[0].content
-    );
-    if (error) {
-      console.log("error upload picture", error);
-    }
-    const link_photo = result;
-    if (link_photo) {
-      var data = { ...product };
-      data.priceSG = Number(data.priceSG);
-      data.priceID = Number(data.priceID);
-      data.image = link_photo;
-      const { result, error } = await createData(
-        `Inventory/Storage/Products`,
-        data
+    if (filesContent.length > 0) {
+      const { result, error } = await uploadFoto(
+        "InventoryProduct",
+        `inventory-${plainFiles[0].name}`,
+        filesContent[0].content
       );
-      if (!error) {
-        toast.success("Add Product successful!");
-        setOnRefresh(true);
-
-        // setProduct((prev) => {
-        //   return { ...prev, idProduct: "" };
-        // });
+      if (error) {
+        console.log("error upload picture", error);
       }
-    }
+      const link_photo = result;
+      if (link_photo) {
+        var data = { ...product };
+        data.priceSG = Number(data.priceSG);
+        data.priceID = Number(data.priceID);
+        data.image = link_photo;
+        const { result, error } = await createData(
+          `Inventory/Storage/Products`,
+          data
+        );
+        if (!error) {
+          toast.success("Add Product successful!");
+          setOnRefresh(true);
+
+          // setProduct((prev) => {
+          //   return { ...prev, idProduct: "" };
+          // });
+        }
+      }
+    }else{
+			var data = { ...product };
+        data.priceSG = Number(data.priceSG);
+        data.priceID = Number(data.priceID);
+        const { result, error } = await createData(
+          `Inventory/Storage/Products`,
+          data
+        );
+        if (!error) {
+          toast.success("Add Product successful!");
+          setOnRefresh(true);
+
+          // setProduct((prev) => {
+          //   return { ...prev, idProduct: "" };
+          // });
+        }
+
+		}
   }, [defaultProduct, filesContent, plainFiles, product]);
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -905,13 +925,17 @@ export default function HomeDashboard() {
                   <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white min-w-fit min-h-fit">
                     Barcode
                   </ModalHeader>
-                  <ModalBody>
-                    <div id="printbarcode" className="max-w-fit">
+                  <ModalBody className="flex flex-col jusitfy-center items-center">
+                    <div
+                      id="printbarcode"
+                      className="max-w-fit flex flex-col items-center justify-center px-1"
+                    >
                       <ReactBarcode
                         value={selectedItem?.idProduct}
                         // style={{alignItems:'center',alignSelf:'center'}}
                         // renderer="image"
                       />
+                      <p>{selectedItem.nameProduct}</p>
                       {/* <Barcode
                         value={"131251231251"}
                         // textPosition="center"

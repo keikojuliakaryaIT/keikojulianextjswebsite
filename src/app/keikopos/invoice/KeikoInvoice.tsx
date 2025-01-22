@@ -198,7 +198,7 @@ const KeikoInvoice = ({
                 {customer.email}
               </Text> */}
 
-              {customer.name !== "" ? (
+              {customer.address !== "" ? (
                 <Text
                   style={{
                     fontFamily: "OpenSansRegular",
@@ -310,7 +310,7 @@ const KeikoInvoice = ({
                     >
                       {data.nameProduct !== "-"
                         ? data.nameProduct
-                        : data.idProduct} ({data.type})
+                        : data.idProduct} {data.type?`(${data.type})`:null}
                     </Text>
                     <Text
                       style={{
