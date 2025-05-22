@@ -31,13 +31,26 @@ import {
   PopoverTrigger,
   Autocomplete,
   AutocompleteItem,
+  Pagination,
+  Tooltip,
+  CircularProgress,
 } from "@nextui-org/react";
 import { platform } from "os";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { today, getLocalTimeZone } from "@internationalized/date";
-import { FaRegCalendarAlt } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaEdit,
+  FaPlus,
+  FaRegCalendarAlt,
+  FaSearch,
+} from "react-icons/fa";
 import CurrencyInput from "react-currency-input-field";
+import { onGetExporProduct } from "@/components/export/exportExcel";
+import { BsCheckLg } from "react-icons/bs";
+import { IoMdBarcode, IoMdEye } from "react-icons/io";
+import { MdDeleteForever } from "react-icons/md";
 
 type productItem = {
   id?: string;
@@ -83,6 +96,27 @@ const baseLocation = [
     location: "Indonesia",
   },
 ];
+const INITIAL_VISIBLE_COLUMNS = [
+  "nameCustomer",
+  "email",
+  "saleDate",
+  "pic",
+  "actions",
+];
+
+type ProductType = {
+  description: string;
+  id: string;
+  idProduct: string;
+  image: string;
+  nameProduct: string;
+  nomor: string;
+  notes: string;
+  status: string;
+  stock_id: number;
+  stock_sg: number;
+  type: string;
+}[];
 
 export default function Operational() {
   const [onRefresh, setOnRefresh] = useState(true);
@@ -111,6 +145,40 @@ export default function Operational() {
   const [stockProduct, setStockProduct] = useState(0);
   const [price, setPrice] = useState<string | number>(0);
   const [notes, setNotes] = useState("");
+  const [filterValue, setFilterValue] = useState("");
+  const [defaultProduct, setDefaultProduct] = useState<any>();
+  const [showTable, setshowTable] = useState<any>();
+  const [statusFilter, setStatusFilter] = useState<any>("all");
+  const [page, setPage] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
+    column: "nameProduct",
+    direction: "ascending",
+  });
+  const [selectedKeys, setSelectedKeys] = useState<any>(new Set([]));
+
+  const statusOptions = useMemo(
+    () => [
+      { name: "Available", uid: "Available" },
+      { name: "Paused", uid: "paused" },
+      { name: "Vacation", uid: "vacation" },
+    ],
+    []
+  );
+  const [visibleColumns, setVisibleColumns] = useState<any>(
+    INITIAL_VISIBLE_COLUMNS
+  );
+  const columns = useMemo(
+    () => [
+      { name: "NAME", uid: "nameCustomer", sortable: true },
+      { name: "EMAIL", uid: "email", sortable: true },
+      // { name: "STOCK", uid: "stock", sortable: true },
+      { name: "SALE DATE", uid: "saleDate", sortable: true },
+      { name: "PIC", uid: "pic", sortable: true },
+      { name: "ACTIONS", uid: "actions" },
+    ],
+    []
+  );
 
   async function pushDataStock() {
     let findData = defaultProducs?.find((data) => {
@@ -255,83 +323,78 @@ export default function Operational() {
   function renderModal() {
     if (modal === "detail") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            classNames={{ base: "light text-black" }}
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Detail Pasien
-                  </ModalHeader>
-                  <ModalBody>
-                    <p>nama</p>
-                    <p>gender</p>
-                    <p>nik</p>
-                    <p>pekerjaan</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={onClose}
-                      className="bg-greenbt text-white"
-                    >
-                      Tutup
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          classNames={{ base: "light text-black" }}
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Detail Pasien
+                </ModalHeader>
+                <ModalBody>
+                  <p>nama</p>
+                  <p>gender</p>
+                  <p>nik</p>
+                  <p>pekerjaan</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-greenbt text-white"
+                  >
+                    Tutup
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "delete") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            classNames={{ base: "light text-black" }}
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Delete Pasien
-                  </ModalHeader>
-                  <ModalBody>
-                    <p>Apakah Kamu Yakin Menghapus Data {}</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={onClose}
-                      className="bg-bluebt text-white"
-                    >
-                      Batal
-                    </Button>
-                    <Button
-                      variant="solid"
-                      // onPress={}
-                      className="bg-red-600 text-white"
-                    >
-                      Hapus
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          classNames={{ base: "light text-black" }}
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Delete Pasien
+                </ModalHeader>
+                <ModalBody>
+                  <p>Apakah Kamu Yakin Menghapus Data {}</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-bluebt text-white"
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    variant="solid"
+                    // onPress={}
+                    className="bg-red-600 text-white"
+                  >
+                    Hapus
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "StockIn") {
       return (
-        <>
           <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
@@ -362,7 +425,7 @@ export default function Operational() {
                     </Select>
                     <Autocomplete
                       isRequired
-                      autoFocus
+                      // autoFocus
                       defaultItems={defaultProducs}
                       label="Choose Product"
                       placeholder="Select an Product"
@@ -555,11 +618,9 @@ export default function Operational() {
               )}
             </ModalContent>
           </Modal>
-        </>
       );
     } else if (modal === "StockOut") {
       return (
-        <>
           <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
@@ -603,7 +664,7 @@ export default function Operational() {
                     </Select>
                     <Autocomplete
                       isRequired
-                      autoFocus
+                      // autoFocus
                       defaultItems={defaultProducs}
                       label="Choose Product"
                       placeholder="Select an Product"
@@ -794,7 +855,6 @@ export default function Operational() {
               )}
             </ModalContent>
           </Modal>
-        </>
       );
     }
   }
@@ -862,27 +922,397 @@ export default function Operational() {
       getDataPIC();
       getDataCategory();
       getDataPlatform();
-			setOnRefresh(false);
+      setOnRefresh(false);
     }
-  }, [getDataCategory, getDataClient, getDataPIC, getDataPlatform, getDataProducts, onRefresh]);
+  }, [
+    getDataCategory,
+    getDataClient,
+    getDataPIC,
+    getDataPlatform,
+    getDataProducts,
+    onRefresh,
+  ]);
 
-  return (
-    <div className="flex flex-col p-5">
-      {renderModal()}
-      <div>Operational</div>
-      <div className="flex flex-row justify-between">
-        <div>Add Stock Product</div>
-        <div>
-          <Button onPress={openStockInModal}>Add More</Button>
+  // return (
+  //   <div className="flex flex-col p-5">
+  //     {renderModal()}
+  //     <div>Operational</div>
+  //     <div className="flex flex-row justify-between">
+  //       <div>Add Stock Product</div>
+  //       <div>
+  //         <Button onPress={openStockInModal}>Add More</Button>
+  //       </div>
+  //     </div>
+
+  //     <div className="flex flex-row justify-between">
+  //       <div>Stock Out Product</div>
+  //       <div>
+  //         <Button onPress={openStockOutModal}>Stock Out</Button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
+  const headerColumns = React.useMemo(() => {
+    if (visibleColumns === "all") return columns;
+
+    return columns.filter((column) =>
+      Array.from(visibleColumns).includes(column.uid)
+    );
+  }, [columns, visibleColumns]);
+  const hasSearchFilter = Boolean(filterValue);
+
+  const filteredItems = React.useMemo(() => {
+    let filteredUsers = [...(showTable ?? [{}])];
+
+    if (hasSearchFilter) {
+      filteredUsers = filteredUsers.filter((user) =>
+        user?.idProduct?.toLowerCase().includes(filterValue.toLowerCase())
+      );
+    }
+    if (
+      statusFilter !== "all" &&
+      Array.from(statusFilter).length !== statusOptions.length
+    ) {
+      filteredUsers = filteredUsers.filter((user) =>
+        Array.from(statusFilter).includes(user.status)
+      );
+    }
+    return filteredUsers;
+  }, [
+    showTable,
+    hasSearchFilter,
+    statusFilter,
+    statusOptions.length,
+    filterValue,
+  ]);
+
+  const pages = Math.ceil(filteredItems?.length / rowsPerPage);
+
+  const items = React.useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return filteredItems.slice(start, end);
+  }, [page, filteredItems, rowsPerPage]);
+
+  const sortedItems = React.useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return [...filteredItems]
+      .sort((a: ProductType, b: ProductType) => {
+        const first = a[sortDescriptor.column as keyof ProductType] as number;
+        const second = b[sortDescriptor.column as keyof ProductType] as number;
+        const cmp = first < second ? -1 : first > second ? 1 : 0;
+        return sortDescriptor.direction === "descending" ? -cmp : cmp;
+      })
+      .slice(start, end);
+  }, [
+    filteredItems,
+    page,
+    rowsPerPage,
+    sortDescriptor.column,
+    sortDescriptor.direction,
+  ]);
+
+  const onClear = useCallback(() => {
+    setFilterValue("");
+    setPage(1);
+  }, []);
+  const onSearchChange = useCallback((value: string) => {
+    if (value) {
+      setFilterValue(value);
+      setPage(1);
+    } else {
+      setFilterValue("");
+    }
+  }, []);
+  function capitalize(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  const onRowsPerPageChange = useCallback((e: any) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
+  const topContent = useMemo(() => {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between gap-3 items-end">
+          <Input
+            aria-label="Search Input"
+            isClearable
+            classNames={{
+              innerWrapper: "w-[100%]  ",
+              inputWrapper: "w-[100%]",
+            }}
+            className="w-[30vw] sm:max-w-[44%]"
+            placeholder="Search"
+            startContent={<FaSearch />}
+            value={filterValue}
+            onClear={() => onClear()}
+            onValueChange={onSearchChange}
+          />
+          <div className="flex gap-3">
+            {/* <Dropdown classNames={{ content: "w-50v data-[open=true]:bg-red" }}>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<FaChevronDown className="text-small" />}
+                  variant="flat"
+                >
+                  Status
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Table Columns"
+                closeOnSelect={false}
+                selectedKeys={statusFilter}
+                selectionMode="multiple"
+                onSelectionChange={setStatusFilter}
+                color="primary"
+              >
+                {statusOptions.map((status) => (
+                  <DropdownItem
+                    key={status.uid}
+                    className="capitalize"
+                    selectedIcon={(data) =>
+                      data.isSelected ? <BsCheckLg /> : null
+                    }
+                  >
+                    {capitalize(status.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown> */}
+            <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button
+                  endContent={<FaChevronDown className="text-small" />}
+                  variant="flat"
+                >
+                  Columns
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label="Table Columns"
+                closeOnSelect={false}
+                selectedKeys={visibleColumns}
+                selectionMode="multiple"
+                onSelectionChange={setVisibleColumns}
+              >
+                {columns.map((column) => (
+                  <DropdownItem
+                    key={column.uid}
+                    className="capitalize"
+                    selectedIcon={(data) =>
+                      data.isSelected ? <BsCheckLg /> : null
+                    }
+                  >
+                    {capitalize(column.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+            <Button
+              color="primary"
+              endContent={<FaPlus />}
+              onPress={openStockInModal}
+            >
+              Add Stock In
+            </Button>
+            <Button
+              color="primary"
+              endContent={<FaPlus />}
+              onPress={openStockOutModal}
+            >
+              Add StockOut
+            </Button>
+          </div>
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-default-400 text-small">
+            Total {defaultProduct?.length} Product
+          </span>
+          <label className="flex items-center text-default-400 text-small">
+            Rows per page:
+            <select
+              className="bg-transparent outline-none text-default-400 text-small"
+              onChange={onRowsPerPageChange}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </label>
         </div>
       </div>
-
-      <div className="flex flex-row justify-between">
-        <div>Stock Out Product</div>
-        <div>
-          <Button onPress={openStockOutModal}>Stock Out</Button>
-        </div>
+    );
+  }, [
+    filterValue,
+    onSearchChange,
+    visibleColumns,
+    columns,
+    defaultProduct?.length,
+    onRowsPerPageChange,
+    onClear,
+  ]);
+  const bottomContent = React.useMemo(() => {
+    return (
+      <div className="py-2 px-2 flex justify-between items-center">
+        <Pagination
+          showControls
+          classNames={{
+            cursor: "bg-foreground text-background",
+          }}
+          color="default"
+          isDisabled={hasSearchFilter}
+          page={page}
+          total={pages}
+          variant="light"
+          onChange={setPage}
+        />
+        <span className="text-small text-default-400 hidden md:flex">
+          {selectedKeys === "all"
+            ? "All items selected"
+            : `${selectedKeys.size} of ${items.length} selected`}
+        </span>
       </div>
-    </div>
+    );
+  }, [hasSearchFilter, page, pages, selectedKeys, items.length]);
+
+  type propsBody = {
+    item: any;
+    columnKey: any;
+    onDetail?: (items: any) => void;
+    onBarcode?: (items: any) => void;
+    onEdit?: (items: any) => void;
+    onDelete?: (items: any) => void;
+  };
+  const renderBody = useCallback(
+    ({ item, columnKey, onDetail, onEdit, onDelete, onBarcode }: propsBody) => {
+      const cellValue = item[columnKey];
+      switch (columnKey) {
+        case "stock":
+          return (
+            <p>
+              {(item?.stock_id ? item?.stock_id : 0) +
+                (item?.stock_sg ? item?.stock_sg : 0)}
+            </p>
+          );
+        case "nameCustomer":
+          return <p>{item?.customer?.name}</p>;
+        case "email":
+          return <p>{item?.customer?.email}</p>;
+        case "saleDate":
+          return (
+            <p>
+              {item?.customer?.saleDate
+                ? new Date(item?.customer?.saleDate).toLocaleDateString()
+                : "NOT SET"}
+            </p>
+          );
+        case "pic":
+          return <p>{item?.customer?.staffPayment}</p>;
+        case "actions":
+          return (
+            <div className="relative flex items-center gap-2">
+              {onBarcode && (
+                <Tooltip content="Barcode">
+                  <span
+                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                    // onClick={() => onBarcode(item)}
+                  >
+                    <IoMdBarcode />
+                  </span>
+                </Tooltip>
+              )}
+
+              {onDetail && (
+                <Tooltip content="Details">
+                  <span
+                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                    onClick={() => onDetail(item)}
+                  >
+                    <IoMdEye />
+                  </span>
+                </Tooltip>
+              )}
+              {onEdit && (
+                <Tooltip content="Edit user">
+                  <span
+                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                    // onClick={() => onEdit(item)}
+                  >
+                    <FaEdit />
+                  </span>
+                </Tooltip>
+              )}
+              {onDelete && (
+                <Tooltip color="danger" content="Delete user">
+                  <span
+                    className="text-lg text-danger cursor-pointer active:opacity-50"
+                    onClick={() => onDelete(item)}
+                  >
+                    <MdDeleteForever />
+                  </span>
+                </Tooltip>
+              )}
+            </div>
+          );
+
+        default:
+          return cellValue;
+      }
+    },
+    []
   );
+
+  if (onRefresh) {
+    return <CircularProgress aria-label="Loading..." />;
+  } else {
+    return (
+      <div className="flex justify-center items-center sm:px-5">
+        {renderModal()}
+        <Table
+          isHeaderSticky
+          topContent={topContent}
+          topContentPlacement="outside"
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          sortDescriptor={sortDescriptor}
+          onSortChange={setSortDescriptor}
+        >
+          <TableHeader columns={headerColumns}>
+            {(column) => (
+              <TableColumn
+                key={column?.uid}
+                align={column?.uid === "actions" ? "center" : "start"}
+                allowsSorting={column?.sortable}
+              >
+                {column?.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={"No users found"} items={sortedItems}>
+            {(item) => (
+              <TableRow key={item.id ?? "Table Row"}>
+                {(columnKey) => (
+                  <TableCell>
+                    {renderBody({
+                      item: item,
+                      columnKey: columnKey,
+                      // onDelete: (item) => openDelete(item),
+                      // onDetail: (item) => openDetail(item),
+                      // onBarcode: (item) => openBarcode(item),
+                      // onEdit: (item) => openEdit(item),
+                    })}
+                  </TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
 }
