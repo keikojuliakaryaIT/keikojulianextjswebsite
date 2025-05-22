@@ -18,27 +18,27 @@ export default function Home() {
   const router = useRouter();
   const getDataOrders = useCallback(async () => {
     if (!searchParams.get("id")) {
-      // let fakeOrder = {
-      //   customer: {
-      //     name: "Jess",
-      //     address: "",
-      //     invoice: "24512115",
-      //     saleDate: new Date("2024-10-11"),
-      //     discount: 60,
-      //     staffPayment: "Fira",
-      //   },
-      //   carts: [
-      //     {
-      //       id: 1,
-      //       nameProduct: "Pearl Chain Bracelet",
-      //       priceSG: 20,
-      //       stockOut: 1,
-      //     },
-      //   ],
-      // };
-      // setresultOrder(fakeOrder);
-      // setisClient(true);
-      router.back();
+      let fakeOrder = {
+        customer: {
+          name: "Li Bin",
+          address: "",
+          invoice: "25512113",
+          saleDate: new Date("2025-02-14"),
+          discount: 0,
+          staffPayment: "Yi Xuan",
+        },
+        carts: [
+          {
+            id: 1,
+            nameProduct: "Perfume",
+            priceSG: 10,
+            stockOut: 2,
+          },
+        ],
+      };
+      setresultOrder(fakeOrder);
+      setisClient(true);
+      // router.back();
     } else {
       try {
         const { result, error } = await getData(

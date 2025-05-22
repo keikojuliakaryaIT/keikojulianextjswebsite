@@ -46,6 +46,8 @@ import html2canvas from "html2canvas";
 import { ReactBarcode } from "react-jsbarcode";
 import { useFilePicker } from "use-file-picker";
 import uploadFoto from "@/components/firebase/uploadFoto";
+import { RiFileExcel2Fill } from "react-icons/ri";
+import { onGetExporProduct } from "@/components/export/exportExcel";
 
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
@@ -282,6 +284,20 @@ export default function HomeDashboard() {
     setModalRender("Add");
     onOpen();
   }, [onOpen]);
+
+  const exportExcel = useCallback(async () => {
+    const dataToExport = defaultProduct.map((product: ProductItem) => ({
+      "ID": product.idProduct,
+      "Product Name": product.nameProduct,
+      "Indonesia Stock": product.stock_id,
+      "Singapore Stock": product.stock_sg,
+      "Indonesia Price":product.priceID,
+      "Singapore Price":product.priceSG,
+      "Product Type": product.type,
+      "Description": product.description,
+    }));
+    await onGetExporProduct("Inventory Website", "Batch 1", dataToExport);
+  }, [defaultProduct]);
   const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
@@ -301,6 +317,13 @@ export default function HomeDashboard() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            <Button
+              color="primary"
+              endContent={<RiFileExcel2Fill />}
+              onPress={exportExcel}
+            >
+              Export Product
+            </Button>
             <Dropdown classNames={{ content: "w-50v data-[open=true]:bg-red" }}>
               <DropdownTrigger className="hidden sm:flex">
                 <Button
@@ -460,24 +483,24 @@ export default function HomeDashboard() {
           // });
         }
       }
-    }else{
-			var data = { ...product };
-        data.priceSG = Number(data.priceSG);
-        data.priceID = Number(data.priceID);
-        const { result, error } = await createData(
-          `Inventory/Storage/Products`,
-          data
-        );
-        if (!error) {
-          toast.success("Add Product successful!");
-          setOnRefresh(true);
+    } else {
+      var data = { ...product };
+      data.priceSG = Number(data.priceSG);
+      data.priceID = Number(data.priceID);
+      data.image = "";
+      const { result, error } = await createData(
+        `Inventory/Storage/Products`,
+        data
+      );
+      if (!error) {
+        toast.success("Add Product successful!");
+        setOnRefresh(true);
 
-          // setProduct((prev) => {
-          //   return { ...prev, idProduct: "" };
-          // });
-        }
-
-		}
+        // setProduct((prev) => {
+        //   return { ...prev, idProduct: "" };
+        // });
+      }
+    }
   }, [defaultProduct, filesContent, plainFiles, product]);
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

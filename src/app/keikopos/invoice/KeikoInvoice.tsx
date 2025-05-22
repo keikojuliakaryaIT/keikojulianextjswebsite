@@ -416,6 +416,9 @@ const KeikoInvoice = ({
           <View style={{ marginTop: 5 }}>
             <Text>Payment Processed by : {customer.staffPayment}</Text>
           </View>
+          <View style={{ marginTop: 5 }}>
+            <Text>Payment With Amex $20 and Cash $1.80</Text>
+          </View>
         </View>
       </Page>
     </Document>
