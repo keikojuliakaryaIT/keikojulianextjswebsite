@@ -51,6 +51,7 @@ import { onGetExporProduct } from "@/components/export/exportExcel";
 import { BsCheckLg } from "react-icons/bs";
 import { IoMdBarcode, IoMdEye } from "react-icons/io";
 import { MdDeleteForever } from "react-icons/md";
+import { RiFileExcel2Fill } from "react-icons/ri";
 
 type productItem = {
   id?: string;
@@ -97,9 +98,9 @@ const baseLocation = [
   },
 ];
 const INITIAL_VISIBLE_COLUMNS = [
-  "nameCustomer",
-  "email",
-  "saleDate",
+  "idProduct",
+  "name",
+  "stock",
   "pic",
   "actions",
 ];
@@ -118,6 +119,24 @@ type ProductType = {
   type: string;
 }[];
 
+type StockType = {
+  description: string;
+  id: string;
+  idProduct: string;
+  image: string;
+  nameProduct: string;
+  PIC: string;
+  OrderData: string;
+  ArrivalData: string;
+  status: string;
+  stockProduct: number;
+  price: number;
+  location: string;
+  Client: string;
+  statusProduct: string;
+  note: string;
+};
+
 export default function Operational() {
   const [onRefresh, setOnRefresh] = useState(true);
   const defaultDate = today("asia/singapore");
@@ -135,6 +154,12 @@ export default function Operational() {
     }[]
   >();
   const [defaultProducs, setDefaultProducs] = useState<productItem>();
+  const [defaultProducsStockIn, setDefaultProducsStockIn] = useState<
+    ProductType | any
+  >();
+  const [defaultProducsStockOut, setDefaultProducsStockOut] = useState<
+    ProductType | any
+  >();
   const [selectedProduct, setselectedProduct] = useState<any>();
   const [selectedClient, setselectedClient] = useState<any>();
   const [selectedCategory, setSelectedCategory] = useState<any>();
@@ -155,6 +180,7 @@ export default function Operational() {
     column: "nameProduct",
     direction: "ascending",
   });
+  const [showData, setShowData] = useState<"stockin" | "stockout">("stockin");
   const [selectedKeys, setSelectedKeys] = useState<any>(new Set([]));
 
   const statusOptions = useMemo(
@@ -170,11 +196,13 @@ export default function Operational() {
   );
   const columns = useMemo(
     () => [
-      { name: "NAME", uid: "nameCustomer", sortable: true },
-      { name: "EMAIL", uid: "email", sortable: true },
+      { name: "ID Product", uid: "idProduct", sortable: true },
+      { name: "NAME", uid: "name", sortable: true },
       // { name: "STOCK", uid: "stock", sortable: true },
-      { name: "SALE DATE", uid: "saleDate", sortable: true },
+      { name: "ORDER DATE", uid: "orderDate", sortable: true },
       { name: "PIC", uid: "pic", sortable: true },
+      { name: "Quantity", uid: "stock", sortable: true },
+      { name: "Price", uid: "price", sortable: true },
       { name: "ACTIONS", uid: "actions" },
     ],
     []
@@ -395,466 +423,456 @@ export default function Operational() {
       );
     } else if (modal === "StockIn") {
       return (
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            className="w-100v"
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Add Stock Product
-                  </ModalHeader>
-                  <ModalBody>
-                    <Select
-                      isRequired
-                      items={baseLocation}
-                      label="Choose Location"
-                      placeholder="Select an Country"
-                      selectedKeys={[selectedLocation]}
-                      onChange={handleSelectioLocation}
-                    >
-                      {(status) => (
-                        <SelectItem key={status?.id}>
-                          {status.location}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Autocomplete
-                      isRequired
-                      // autoFocus
-                      defaultItems={defaultProducs}
-                      label="Choose Product"
-                      placeholder="Select an Product"
-                      labelPlacement="outside"
-                      selectedKey={selectedProduct}
-                      onSelectionChange={setselectedProduct}
-                    >
-                      {(product) => (
-                        <AutocompleteItem key={product.id || product.idProduct}>
-                          {`(${product.idProduct}) - ${product?.nameProduct}`}
-                        </AutocompleteItem>
-                      )}
-                    </Autocomplete>
-                    <Select
-                      required={true}
-                      items={client}
-                      label="Choose Client"
-                      placeholder="Select an Client"
-                      selectedKeys={[selectedClient]}
-                      onChange={handleSelectioClient}
-                    >
-                      {(clients) => (
-                        <SelectItem key={clients?.Client}>
-                          {clients.Client}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <div>
-                      <h2>Order Date</h2>
-                      <Popover showArrow offset={10} placement="right-start">
-                        <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
-                          <p>{orderDate.toString()}</p>
-                          <PopoverTrigger className="bg-gray-100">
-                            <Button>
-                              <FaRegCalendarAlt />
-                            </Button>
-                          </PopoverTrigger>
-                        </div>
-                        <PopoverContent>
-                          {(titleProps) => (
-                            <div {...titleProps}>
-                              <Calendar
-                                aria-label="Date (Controlled Focused Value)"
-                                focusedValue={orderDate}
-                                value={orderDate}
-                                onFocusChange={setOrderDate}
-                                classNames={{
-                                  gridBody: "grid",
-                                  gridHeaderRow: "justify-around",
-                                  gridBodyRow: "justify-around",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <h2>Arrival Date</h2>
-                      <Popover showArrow offset={10} placement="right-start">
-                        <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
-                          <p>{arrivalDate.toString()}</p>
-                          <PopoverTrigger className="bg-gray-100">
-                            <Button>
-                              <FaRegCalendarAlt />
-                            </Button>
-                          </PopoverTrigger>
-                        </div>
-                        <PopoverContent>
-                          {(titleProps) => (
-                            <div {...titleProps}>
-                              <Calendar
-                                aria-label="Date (Controlled Focused Value)"
-                                focusedValue={arrivalDate}
-                                value={arrivalDate}
-                                onFocusChange={setArrivalDate}
-                                classNames={{
-                                  gridBody: "grid",
-                                  gridHeaderRow: "justify-around",
-                                  gridBodyRow: "justify-around",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <Input
-                      isRequired
-                      label="Quantity Product"
-                      labelPlacement="outside"
-                      // className="grid-rows-1 gap-"
-                      type="text"
-                      variant="bordered"
-                      value={stockProduct.toString()}
-                      onValueChange={(data) => setStockProduct(Number(data))}
-                    />
-
-                    {selectedLocation && selectedLocation !== "" && (
-                      <div className="w-full ">
-                        {selectedLocation === "Indonesia" ? (
-                          <div className="w-full">
-                            <CurrencyInput
-                              value={price}
-                              intlConfig={{ locale: "id-ID", currency: "IDR" }}
-                              placeholder="Please enter price"
-                              className="bg-gray-100 py-2 px-1 rounded-md w-full"
-                              onValueChange={(value) => {
-                                console.log("value ", value);
-                                setPrice(
-                                  Number(value !== undefined ? value : 0)
-                                );
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          className="w-100v"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Add Stock Product
+                </ModalHeader>
+                <ModalBody>
+                  <Select
+                    isRequired
+                    items={baseLocation}
+                    label="Choose Location"
+                    placeholder="Select an Country"
+                    selectedKeys={[selectedLocation]}
+                    onChange={handleSelectioLocation}
+                  >
+                    {(status) => (
+                      <SelectItem key={status?.id}>
+                        {status.location}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <Autocomplete
+                    isRequired
+                    // autoFocus
+                    defaultItems={defaultProducs}
+                    label="Choose Product"
+                    placeholder="Select an Product"
+                    labelPlacement="outside"
+                    selectedKey={selectedProduct}
+                    onSelectionChange={setselectedProduct}
+                  >
+                    {(product) => (
+                      <AutocompleteItem key={product.id || product.idProduct}>
+                        {`(${product.idProduct}) - ${product?.nameProduct}`}
+                      </AutocompleteItem>
+                    )}
+                  </Autocomplete>
+                  <Select
+                    required={true}
+                    items={client}
+                    label="Choose Client"
+                    placeholder="Select an Client"
+                    selectedKeys={[selectedClient]}
+                    onChange={handleSelectioClient}
+                  >
+                    {(clients) => (
+                      <SelectItem key={clients?.Client}>
+                        {clients.Client}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <div>
+                    <h2>Order Date</h2>
+                    <Popover showArrow offset={10} placement="right-start">
+                      <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
+                        <p>{orderDate.toString()}</p>
+                        <PopoverTrigger className="bg-gray-100">
+                          <Button>
+                            <FaRegCalendarAlt />
+                          </Button>
+                        </PopoverTrigger>
+                      </div>
+                      <PopoverContent>
+                        {(titleProps) => (
+                          <div {...titleProps}>
+                            <Calendar
+                              aria-label="Date (Controlled Focused Value)"
+                              focusedValue={orderDate}
+                              value={orderDate}
+                              onFocusChange={setOrderDate}
+                              classNames={{
+                                gridBody: "grid",
+                                gridHeaderRow: "justify-around",
+                                gridBodyRow: "justify-around",
                               }}
                             />
                           </div>
-                        ) : (
-                          <div className="w-full">
-                            <CurrencyInput
-                              value={price}
-                              intlConfig={{ locale: "en-SG", currency: "SGD" }}
-                              defaultValue={0}
-                              decimalsLimit={2}
-                              placeholder="Please enter price"
-                              className="bg-gray-100 py-2 px-1 rounded-md w-full"
-                              onValueChange={(value) =>
-                                setPrice(value !== undefined ? value : 0)
-                              }
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <h2>Arrival Date</h2>
+                    <Popover showArrow offset={10} placement="right-start">
+                      <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
+                        <p>{arrivalDate.toString()}</p>
+                        <PopoverTrigger className="bg-gray-100">
+                          <Button>
+                            <FaRegCalendarAlt />
+                          </Button>
+                        </PopoverTrigger>
+                      </div>
+                      <PopoverContent>
+                        {(titleProps) => (
+                          <div {...titleProps}>
+                            <Calendar
+                              aria-label="Date (Controlled Focused Value)"
+                              focusedValue={arrivalDate}
+                              value={arrivalDate}
+                              onFocusChange={setArrivalDate}
+                              classNames={{
+                                gridBody: "grid",
+                                gridHeaderRow: "justify-around",
+                                gridBodyRow: "justify-around",
+                              }}
                             />
                           </div>
                         )}
-                      </div>
-                    )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <Input
+                    isRequired
+                    label="Quantity Product"
+                    labelPlacement="outside"
+                    // className="grid-rows-1 gap-"
+                    type="text"
+                    variant="bordered"
+                    value={stockProduct.toString()}
+                    onValueChange={(data) => setStockProduct(Number(data))}
+                  />
 
-                    <Select
-                      items={statusProduct}
-                      label="Choose Status"
-                      placeholder="Select an Status"
-                      selectedKeys={[selectedStatus]}
-                      onChange={handleSelectioStatus}
-                    >
-                      {(status) => (
-                        <SelectItem key={status?.status}>
-                          {status.status}
-                        </SelectItem>
+                  {selectedLocation && selectedLocation !== "" && (
+                    <div className="w-full ">
+                      {selectedLocation === "Indonesia" ? (
+                        <div className="w-full">
+                          <CurrencyInput
+                            value={price}
+                            intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                            placeholder="Please enter price"
+                            className="bg-gray-100 py-2 px-1 rounded-md w-full"
+                            onValueChange={(value) => {
+                              console.log("value ", value);
+                              setPrice(Number(value !== undefined ? value : 0));
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <CurrencyInput
+                            value={price}
+                            intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                            defaultValue={0}
+                            decimalsLimit={2}
+                            placeholder="Please enter price"
+                            className="bg-gray-100 py-2 px-1 rounded-md w-full"
+                            onValueChange={(value) =>
+                              setPrice(value !== undefined ? value : 0)
+                            }
+                          />
+                        </div>
                       )}
-                    </Select>
-                    <Select
-                      isRequired
-                      items={staff}
-                      label="Choose PIC"
-                      placeholder="Select an PIC"
-                      selectedKeys={[selectedStaff]}
-                      onChange={handleSelectioStaff}
-                    >
-                      {(staffs) => (
-                        <SelectItem key={staffs?.name}>
-                          {staffs.name}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Textarea
-                      label="Notes"
-                      labelPlacement="outside"
-                      placeholder="Enter your description"
-                      // className="max-w-xs"
-                      value={notes}
-                      onValueChange={setNotes}
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={pushDataStock}
-                      size="lg"
-                      isDisabled={
-                        !selectedProduct ||
-                        selectedProduct === "" ||
-                        stockProduct === 0 ||
-                        !selectedStaff ||
-                        selectedStaff === "" ||
-                        !selectedLocation ||
-                        selectedLocation === ""
-                      }
-                      className="bg-greenbt text-white"
-                    >
-                      Add Stock Product
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
+                    </div>
+                  )}
+
+                  <Select
+                    items={statusProduct}
+                    label="Choose Status"
+                    placeholder="Select an Status"
+                    selectedKeys={[selectedStatus]}
+                    onChange={handleSelectioStatus}
+                  >
+                    {(status) => (
+                      <SelectItem key={status?.status}>
+                        {status.status}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <Select
+                    isRequired
+                    items={staff}
+                    label="Choose PIC"
+                    placeholder="Select an PIC"
+                    selectedKeys={[selectedStaff]}
+                    onChange={handleSelectioStaff}
+                  >
+                    {(staffs) => (
+                      <SelectItem key={staffs?.name}>{staffs.name}</SelectItem>
+                    )}
+                  </Select>
+                  <Textarea
+                    label="Notes"
+                    labelPlacement="outside"
+                    placeholder="Enter your description"
+                    // className="max-w-xs"
+                    value={notes}
+                    onValueChange={setNotes}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={pushDataStock}
+                    size="lg"
+                    isDisabled={
+                      !selectedProduct ||
+                      selectedProduct === "" ||
+                      stockProduct === 0 ||
+                      !selectedStaff ||
+                      selectedStaff === "" ||
+                      !selectedLocation ||
+                      selectedLocation === ""
+                    }
+                    className="bg-greenbt text-white"
+                  >
+                    Add Stock Product
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "StockOut") {
       return (
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Stock Out Product
-                  </ModalHeader>
-                  <ModalBody>
-                    <Select
-                      isRequired
-                      items={baseLocation}
-                      label="Choose Location"
-                      placeholder="Select an Country"
-                      selectedKeys={[selectedLocation]}
-                      onChange={handleSelectioLocation}
-                    >
-                      {(status) => (
-                        <SelectItem key={status?.id}>
-                          {status.location}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Select
-                      isRequired
-                      items={category}
-                      label="Choose Category"
-                      placeholder="Select an Category"
-                      selectedKeys={[selectedCategory]}
-                      onChange={handleSelectioCategory}
-                    >
-                      {(clients) => (
-                        <SelectItem key={clients?.name}>
-                          {clients.name}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Autocomplete
-                      isRequired
-                      // autoFocus
-                      defaultItems={defaultProducs}
-                      label="Choose Product"
-                      placeholder="Select an Product"
-                      labelPlacement="outside"
-                      selectedKey={selectedProduct}
-                      onSelectionChange={setselectedProduct}
-                    >
-                      {(product) => (
-                        <AutocompleteItem key={product.id || product.idProduct}>
-                          {`(${product.idProduct}) - ${product?.nameProduct}`}
-                        </AutocompleteItem>
-                      )}
-                    </Autocomplete>
-                    <div>
-                      <h2>Order Date</h2>
-                      <Popover showArrow offset={10} placement="right-start">
-                        <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
-                          <p>{orderDate.toString()}</p>
-                          <PopoverTrigger className="bg-gray-100">
-                            <Button>
-                              <FaRegCalendarAlt />
-                            </Button>
-                          </PopoverTrigger>
-                        </div>
-                        <PopoverContent>
-                          {(titleProps) => (
-                            <div {...titleProps}>
-                              <Calendar
-                                aria-label="Date (Controlled Focused Value)"
-                                focusedValue={orderDate}
-                                value={orderDate}
-                                onFocusChange={setOrderDate}
-                                classNames={{
-                                  gridBody: "grid",
-                                  gridHeaderRow: "justify-around",
-                                  gridBodyRow: "justify-around",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <h2>Arrival Date</h2>
-                      <Popover showArrow offset={10} placement="right-start">
-                        <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
-                          <p>{arrivalDate.toString()}</p>
-                          <PopoverTrigger className="bg-gray-100">
-                            <Button>
-                              <FaRegCalendarAlt />
-                            </Button>
-                          </PopoverTrigger>
-                        </div>
-                        <PopoverContent>
-                          {(titleProps) => (
-                            <div {...titleProps}>
-                              <Calendar
-                                aria-label="Date (Controlled Focused Value)"
-                                focusedValue={arrivalDate}
-                                value={arrivalDate}
-                                onFocusChange={setArrivalDate}
-                                classNames={{
-                                  gridBody: "grid",
-                                  gridHeaderRow: "justify-around",
-                                  gridBodyRow: "justify-around",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <Input
-                      isRequired
-                      label="Quantity Product"
-                      labelPlacement="outside"
-                      // className="grid-rows-1 gap-"
-                      type="text"
-                      variant="bordered"
-                      value={stockProduct.toString()}
-                      onValueChange={(data) => setStockProduct(Number(data))}
-                    />
-                    {selectedLocation && selectedLocation !== "" && (
-                      <div className="w-full ">
-                        {selectedLocation === "Indonesia" ? (
-                          <div className="w-full">
-                            <CurrencyInput
-                              value={price}
-                              intlConfig={{ locale: "id-ID", currency: "IDR" }}
-                              placeholder="Please enter price"
-                              className="bg-gray-100 py-2 px-1 rounded-md w-full"
-                              onValueChange={(value) =>
-                                setPrice(
-                                  Number(value !== undefined ? value : 0)
-                                )
-                              }
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full">
-                            <CurrencyInput
-                              value={price}
-                              intlConfig={{ locale: "en-SG", currency: "SGD" }}
-                              defaultValue={0}
-                              decimalsLimit={2}
-                              placeholder="Please enter price"
-                              className="bg-gray-100 py-2 px-1 rounded-md w-full"
-                              onValueChange={(value) =>
-                                setPrice(value !== undefined ? value : 0)
-                              }
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Stock Out Product
+                </ModalHeader>
+                <ModalBody>
+                  <Select
+                    isRequired
+                    items={baseLocation}
+                    label="Choose Location"
+                    placeholder="Select an Country"
+                    selectedKeys={[selectedLocation]}
+                    onChange={handleSelectioLocation}
+                  >
+                    {(status) => (
+                      <SelectItem key={status?.id}>
+                        {status.location}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <Select
+                    isRequired
+                    items={category}
+                    label="Choose Category"
+                    placeholder="Select an Category"
+                    selectedKeys={[selectedCategory]}
+                    onChange={handleSelectioCategory}
+                  >
+                    {(clients) => (
+                      <SelectItem key={clients?.name}>
+                        {clients.name}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <Autocomplete
+                    isRequired
+                    // autoFocus
+                    defaultItems={defaultProducs}
+                    label="Choose Product"
+                    placeholder="Select an Product"
+                    labelPlacement="outside"
+                    selectedKey={selectedProduct}
+                    onSelectionChange={setselectedProduct}
+                  >
+                    {(product) => (
+                      <AutocompleteItem key={product.id || product.idProduct}>
+                        {`(${product.idProduct}) - ${product?.nameProduct}`}
+                      </AutocompleteItem>
+                    )}
+                  </Autocomplete>
+                  <div>
+                    <h2>Order Date</h2>
+                    <Popover showArrow offset={10} placement="right-start">
+                      <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
+                        <p>{orderDate.toString()}</p>
+                        <PopoverTrigger className="bg-gray-100">
+                          <Button>
+                            <FaRegCalendarAlt />
+                          </Button>
+                        </PopoverTrigger>
+                      </div>
+                      <PopoverContent>
+                        {(titleProps) => (
+                          <div {...titleProps}>
+                            <Calendar
+                              aria-label="Date (Controlled Focused Value)"
+                              focusedValue={orderDate}
+                              value={orderDate}
+                              onFocusChange={setOrderDate}
+                              classNames={{
+                                gridBody: "grid",
+                                gridHeaderRow: "justify-around",
+                                gridBodyRow: "justify-around",
+                              }}
                             />
                           </div>
                         )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <h2>Arrival Date</h2>
+                    <Popover showArrow offset={10} placement="right-start">
+                      <div className="flex w-full justify-between bg-gray-100 p-2 rounded-lg">
+                        <p>{arrivalDate.toString()}</p>
+                        <PopoverTrigger className="bg-gray-100">
+                          <Button>
+                            <FaRegCalendarAlt />
+                          </Button>
+                        </PopoverTrigger>
                       </div>
+                      <PopoverContent>
+                        {(titleProps) => (
+                          <div {...titleProps}>
+                            <Calendar
+                              aria-label="Date (Controlled Focused Value)"
+                              focusedValue={arrivalDate}
+                              value={arrivalDate}
+                              onFocusChange={setArrivalDate}
+                              classNames={{
+                                gridBody: "grid",
+                                gridHeaderRow: "justify-around",
+                                gridBodyRow: "justify-around",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <Input
+                    isRequired
+                    label="Quantity Product"
+                    labelPlacement="outside"
+                    // className="grid-rows-1 gap-"
+                    type="text"
+                    variant="bordered"
+                    value={stockProduct.toString()}
+                    onValueChange={(data) => setStockProduct(Number(data))}
+                  />
+                  {selectedLocation && selectedLocation !== "" && (
+                    <div className="w-full ">
+                      {selectedLocation === "Indonesia" ? (
+                        <div className="w-full">
+                          <CurrencyInput
+                            value={price}
+                            intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                            placeholder="Please enter price"
+                            className="bg-gray-100 py-2 px-1 rounded-md w-full"
+                            onValueChange={(value) =>
+                              setPrice(Number(value !== undefined ? value : 0))
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <CurrencyInput
+                            value={price}
+                            intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                            defaultValue={0}
+                            decimalsLimit={2}
+                            placeholder="Please enter price"
+                            className="bg-gray-100 py-2 px-1 rounded-md w-full"
+                            onValueChange={(value) =>
+                              setPrice(value !== undefined ? value : 0)
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <Select
+                    items={statusProduct}
+                    label="Choose Status"
+                    placeholder="Select an Status"
+                    selectedKeys={[selectedStatus]}
+                    onChange={handleSelectioStatus}
+                  >
+                    {(status) => (
+                      <SelectItem key={status?.status}>
+                        {status.status}
+                      </SelectItem>
                     )}
-                    <Select
-                      items={statusProduct}
-                      label="Choose Status"
-                      placeholder="Select an Status"
-                      selectedKeys={[selectedStatus]}
-                      onChange={handleSelectioStatus}
-                    >
-                      {(status) => (
-                        <SelectItem key={status?.status}>
-                          {status.status}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Select
-                      required={true}
-                      items={staff}
-                      label="Choose PIC"
-                      placeholder="Select an PIC"
-                      selectedKeys={[selectedStaff]}
-                      onChange={handleSelectioStaff}
-                    >
-                      {(staffs) => (
-                        <SelectItem key={staffs?.name}>
-                          {staffs.name}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Select
-                      isRequired
-                      items={platform}
-                      label="Choose Platform Store"
-                      placeholder="Select an Platform Store"
-                      selectedKeys={[selectedPlatform]}
-                      onChange={handleSelectioPlatform}
-                    >
-                      {(status) => (
-                        <SelectItem key={status?.name}>
-                          {status.name}
-                        </SelectItem>
-                      )}
-                    </Select>
-                    <Textarea
-                      label="Notes"
-                      labelPlacement="outside"
-                      placeholder="Enter your description"
-                      value={notes}
-                      onValueChange={setNotes}
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      isDisabled={
-                        !selectedProduct ||
-                        selectedProduct === "" ||
-                        stockProduct === 0 ||
-                        selectedCategory === "" ||
-                        !selectedCategory ||
-                        !selectedLocation ||
-                        selectedLocation === "" ||
-                        !selectedPlatform ||
-                        selectedPlatform === ""
-                      }
-                      size="lg"
-                      onPress={pushDataStockOut}
-                      className="bg-greenbt text-white"
-                    >
-                      Add Stock Out Product
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
+                  </Select>
+                  <Select
+                    required={true}
+                    items={staff}
+                    label="Choose PIC"
+                    placeholder="Select an PIC"
+                    selectedKeys={[selectedStaff]}
+                    onChange={handleSelectioStaff}
+                  >
+                    {(staffs) => (
+                      <SelectItem key={staffs?.name}>{staffs.name}</SelectItem>
+                    )}
+                  </Select>
+                  <Select
+                    isRequired
+                    items={platform}
+                    label="Choose Platform Store"
+                    placeholder="Select an Platform Store"
+                    selectedKeys={[selectedPlatform]}
+                    onChange={handleSelectioPlatform}
+                  >
+                    {(status) => (
+                      <SelectItem key={status?.name}>{status.name}</SelectItem>
+                    )}
+                  </Select>
+                  <Textarea
+                    label="Notes"
+                    labelPlacement="outside"
+                    placeholder="Enter your description"
+                    value={notes}
+                    onValueChange={setNotes}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    isDisabled={
+                      !selectedProduct ||
+                      selectedProduct === "" ||
+                      stockProduct === 0 ||
+                      selectedCategory === "" ||
+                      !selectedCategory ||
+                      !selectedLocation ||
+                      selectedLocation === "" ||
+                      !selectedPlatform ||
+                      selectedPlatform === ""
+                    }
+                    size="lg"
+                    onPress={pushDataStockOut}
+                    className="bg-greenbt text-white"
+                  >
+                    Add Stock Out Product
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     }
   }
@@ -904,34 +922,61 @@ export default function Operational() {
     }
   }, []);
 
-  const getDataProducts = useCallback(async () => {
+  // const getDataProducts = useCallback(async () => {
+  //   const { result, error } = await getDataCollection(
+  //     `Inventory/Storage/Products`
+  //   );
+  //   if (!error) {
+  //     setDefaultProducs(result);
+  //   } else {
+  //     return toast("ERROR, Get Data Products Error Please Try Again !");
+  //   }
+  // }, []);
+  const getDataStockout = useCallback(async () => {
     const { result, error } = await getDataCollection(
-      `Inventory/Storage/Products`
+      `Inventory/Storage/StockOut`
     );
     if (!error) {
-      setDefaultProducs(result);
+      setDefaultProducsStockOut(result);
+    } else {
+      return toast("ERROR, Get Data Products Error Please Try Again !");
+    }
+  }, []);
+  const getDataStockin = useCallback(async () => {
+    const { result, error } = await getDataCollection(
+      `Inventory/Storage/StockIn`
+    );
+    if (!error) {
+      setDefaultProducsStockIn(result);
     } else {
       return toast("ERROR, Get Data Products Error Please Try Again !");
     }
   }, []);
 
-  useEffect(() => {
-    if (onRefresh) {
-      getDataClient();
-      getDataProducts();
-      getDataPIC();
-      getDataCategory();
-      getDataPlatform();
-      setOnRefresh(false);
-    }
+  const firstRender = useCallback(async () => {
+    await getDataClient();
+    // getDataProducts();
+    await getDataPIC();
+    await getDataCategory();
+    await getDataPlatform();
+    await getDataStockout();
+    await getDataStockin();
+    console.log("first render");
+    setOnRefresh(false);
   }, [
     getDataCategory,
     getDataClient,
     getDataPIC,
     getDataPlatform,
-    getDataProducts,
-    onRefresh,
+    getDataStockin,
+    getDataStockout,
   ]);
+
+  useEffect(() => {
+    if (onRefresh) {
+      firstRender();
+    }
+  }, [firstRender, onRefresh]);
 
   // return (
   //   <div className="flex flex-col p-5">
@@ -962,7 +1007,12 @@ export default function Operational() {
   const hasSearchFilter = Boolean(filterValue);
 
   const filteredItems = React.useMemo(() => {
-    let filteredUsers = [...(showTable ?? [{}])];
+    // let filteredUsers = [...(showTable ?? [{}])];
+    let filteredUsers = [
+      ...((showData === "stockin"
+        ? defaultProducsStockIn
+        : defaultProducsStockOut) ?? [{}]),
+    ];
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
@@ -979,7 +1029,9 @@ export default function Operational() {
     }
     return filteredUsers;
   }, [
-    showTable,
+    showData,
+    defaultProducsStockIn,
+    defaultProducsStockOut,
     hasSearchFilter,
     statusFilter,
     statusOptions.length,
@@ -1033,6 +1085,30 @@ export default function Operational() {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
+
+  const exportExcel = useCallback(async () => {
+    const dataToExport = (
+      showData === "stockin" ? defaultProducsStockIn : defaultProducsStockOut
+    ).map((product: StockType) => ({
+      ID: product.idProduct,
+      "Product Name": product.nameProduct,
+      Quantity: product.stockProduct,
+      // "Singapore Price": product.priceSG,
+      PIC: product.PIC,
+      "Order Date": new Date(product?.OrderData).toLocaleDateString(),
+      "Arrival Date": new Date(product?.ArrivalData).toLocaleDateString(),
+      Location: product.location,
+      Price: product.price,
+      Client: product.Client,
+      Status: product.statusProduct,
+      Note: product.statusProduct,
+    }));
+    await onGetExporProduct(
+      `Inventory Website ${showData.toUpperCase()}`,
+      "Batch 1",
+      dataToExport
+    );
+  }, [defaultProducsStockIn, defaultProducsStockOut, showData]);
   const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
@@ -1083,6 +1159,24 @@ export default function Operational() {
                 ))}
               </DropdownMenu>
             </Dropdown> */}
+            <Button
+              color="primary"
+              isDisabled={showData === "stockin"}
+              // endContent={<FaPlus />}
+              onPress={() => setShowData("stockin")}
+            >
+              Stock In
+            </Button>
+            <Button
+              color="primary"
+              isDisabled={showData === "stockout"}
+              // endContent={<FaPlus />}
+              onPress={() => {
+                setShowData("stockout");
+              }}
+            >
+              Stock Out
+            </Button>
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
                 <Button
@@ -1150,8 +1244,11 @@ export default function Operational() {
   }, [
     filterValue,
     onSearchChange,
+    showData,
     visibleColumns,
     columns,
+    openStockInModal,
+    openStockOutModal,
     defaultProduct?.length,
     onRowsPerPageChange,
     onClear,
@@ -1171,11 +1268,20 @@ export default function Operational() {
           variant="light"
           onChange={setPage}
         />
-        <span className="text-small text-default-400 hidden md:flex">
-          {selectedKeys === "all"
-            ? "All items selected"
-            : `${selectedKeys.size} of ${items.length} selected`}
-        </span>
+        <div>
+          <Button
+            color="primary"
+            endContent={<RiFileExcel2Fill />}
+            onPress={exportExcel}
+          >
+            Export Product
+          </Button>
+          <span className="text-small text-default-400 hidden md:flex">
+            {selectedKeys === "all"
+              ? "All items selected"
+              : `${selectedKeys.size} of ${items.length} selected`}
+          </span>
+        </div>
       </div>
     );
   }, [hasSearchFilter, page, pages, selectedKeys, items.length]);
@@ -1191,80 +1297,149 @@ export default function Operational() {
   const renderBody = useCallback(
     ({ item, columnKey, onDetail, onEdit, onDelete, onBarcode }: propsBody) => {
       const cellValue = item[columnKey];
-      switch (columnKey) {
-        case "stock":
-          return (
-            <p>
-              {(item?.stock_id ? item?.stock_id : 0) +
-                (item?.stock_sg ? item?.stock_sg : 0)}
-            </p>
-          );
-        case "nameCustomer":
-          return <p>{item?.customer?.name}</p>;
-        case "email":
-          return <p>{item?.customer?.email}</p>;
-        case "saleDate":
-          return (
-            <p>
-              {item?.customer?.saleDate
-                ? new Date(item?.customer?.saleDate).toLocaleDateString()
-                : "NOT SET"}
-            </p>
-          );
-        case "pic":
-          return <p>{item?.customer?.staffPayment}</p>;
-        case "actions":
-          return (
-            <div className="relative flex items-center gap-2">
-              {onBarcode && (
-                <Tooltip content="Barcode">
-                  <span
-                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                    // onClick={() => onBarcode(item)}
-                  >
-                    <IoMdBarcode />
-                  </span>
-                </Tooltip>
-              )}
+      if (showData === "stockin") {
+        switch (columnKey) {
+          case "stock":
+            return <p>{item.stockProduct}</p>;
+          case "idProduct":
+            return <p>{item?.idProduct}</p>;
+          case "name":
+            return <p>{item?.nameProduct}</p>;
+          case "orderDate":
+            return (
+              <p>
+                {item?.OrderData
+                  ? new Date(item?.OrderData).toLocaleDateString()
+                  : "NOT SET"}
+              </p>
+            );
+          case "pic":
+            return <p>{item?.PIC}</p>;
+          case "price":
+            return <p>{item?.price}</p>;
+          case "actions":
+            return (
+              <div className="relative flex items-center gap-2">
+                {onBarcode && (
+                  <Tooltip content="Barcode">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      // onClick={() => onBarcode(item)}
+                    >
+                      <IoMdBarcode />
+                    </span>
+                  </Tooltip>
+                )}
 
-              {onDetail && (
-                <Tooltip content="Details">
-                  <span
-                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                    onClick={() => onDetail(item)}
-                  >
-                    <IoMdEye />
-                  </span>
-                </Tooltip>
-              )}
-              {onEdit && (
-                <Tooltip content="Edit user">
-                  <span
-                    className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                    // onClick={() => onEdit(item)}
-                  >
-                    <FaEdit />
-                  </span>
-                </Tooltip>
-              )}
-              {onDelete && (
-                <Tooltip color="danger" content="Delete user">
-                  <span
-                    className="text-lg text-danger cursor-pointer active:opacity-50"
-                    onClick={() => onDelete(item)}
-                  >
-                    <MdDeleteForever />
-                  </span>
-                </Tooltip>
-              )}
-            </div>
-          );
+                {onDetail && (
+                  <Tooltip content="Details">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      onClick={() => onDetail(item)}
+                    >
+                      <IoMdEye />
+                    </span>
+                  </Tooltip>
+                )}
+                {onEdit && (
+                  <Tooltip content="Edit user">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      // onClick={() => onEdit(item)}
+                    >
+                      <FaEdit />
+                    </span>
+                  </Tooltip>
+                )}
+                {onDelete && (
+                  <Tooltip color="danger" content="Delete user">
+                    <span
+                      className="text-lg text-danger cursor-pointer active:opacity-50"
+                      onClick={() => onDelete(item)}
+                    >
+                      <MdDeleteForever />
+                    </span>
+                  </Tooltip>
+                )}
+              </div>
+            );
 
-        default:
-          return cellValue;
+          default:
+            return cellValue;
+        }
+      } else {
+        switch (columnKey) {
+          case "stock":
+            return <p>{item.stockProduct}</p>;
+          case "idProduct":
+            return <p>{item?.idProduct}</p>;
+          case "name":
+            return <p>{item?.nameProduct}</p>;
+          case "orderDate":
+            return (
+              <p>
+                {item?.OrderData
+                  ? new Date(item?.OrderData).toLocaleDateString()
+                  : "NOT SET"}
+              </p>
+            );
+          case "pic":
+            return <p>{item?.PIC}</p>;
+          case "price":
+            return <p>{item?.price}</p>;
+          case "actions":
+            return (
+              <div className="relative flex items-center gap-2">
+                {onBarcode && (
+                  <Tooltip content="Barcode">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      // onClick={() => onBarcode(item)}
+                    >
+                      <IoMdBarcode />
+                    </span>
+                  </Tooltip>
+                )}
+
+                {onDetail && (
+                  <Tooltip content="Details">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      onClick={() => onDetail(item)}
+                    >
+                      <IoMdEye />
+                    </span>
+                  </Tooltip>
+                )}
+                {onEdit && (
+                  <Tooltip content="Edit user">
+                    <span
+                      className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      // onClick={() => onEdit(item)}
+                    >
+                      <FaEdit />
+                    </span>
+                  </Tooltip>
+                )}
+                {onDelete && (
+                  <Tooltip color="danger" content="Delete user">
+                    <span
+                      className="text-lg text-danger cursor-pointer active:opacity-50"
+                      onClick={() => onDelete(item)}
+                    >
+                      <MdDeleteForever />
+                    </span>
+                  </Tooltip>
+                )}
+              </div>
+            );
+
+          default:
+            return cellValue;
+        }
       }
     },
-    []
+    [showData]
   );
 
   if (onRefresh) {
