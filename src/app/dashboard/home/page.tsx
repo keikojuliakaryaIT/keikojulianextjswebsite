@@ -48,6 +48,8 @@ import { useFilePicker } from "use-file-picker";
 import uploadFoto from "@/components/firebase/uploadFoto";
 import { RiFileExcel2Fill } from "react-icons/ri";
 import { onGetExporProduct } from "@/components/export/exportExcel";
+import { parseExcelFile } from "@/components/export/importExcel";
+import { downloadExcelTemplate } from "@/components/export/createTemplate";
 
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
@@ -80,6 +82,17 @@ type ProductItem = {
   certificate: boolean;
 };
 
+type ImportProduct = {
+  idProduct: string;
+  nameProduct: string;
+  type: string;
+  description: string;
+  priceSG: string | number;
+  priceID: string | number;
+  notes: string;
+  certificate: boolean;
+};
+
 export default function HomeDashboard() {
   const [onRefresh, setOnRefresh] = useState(true);
   const [filterValue, setFilterValue] = useState("");
@@ -106,6 +119,16 @@ export default function HomeDashboard() {
     notes: "",
     image: "",
     status: "Available",
+    certificate: false,
+  });
+  const [importProduct, setImportProduct] = useState<ImportProduct>({
+    idProduct: "",
+    nameProduct: "",
+    type: "",
+    description: "",
+    priceSG: "",
+    priceID: "",
+    notes: "",
     certificate: false,
   });
 
@@ -150,6 +173,7 @@ export default function HomeDashboard() {
   const [type, setType] = useState<[{ id: string; type: string }]>();
   const [defaultProduct, setDefaultProduct] = useState<any>();
   const [location, setlocation] = useState<string>("");
+  const [isImporting, setIsImporting] = useState(false);
 
   const getDataType = useCallback(async () => {
     const { result, error } = await getDataCollection(`Inventory/Admin/Type`);
@@ -284,17 +308,21 @@ export default function HomeDashboard() {
     setModalRender("Add");
     onOpen();
   }, [onOpen]);
+  const openImportModal = useCallback(() => {
+    setModalRender("Import");
+    onOpen();
+  }, [onOpen]);
 
   const exportExcel = useCallback(async () => {
     const dataToExport = defaultProduct.map((product: ProductItem) => ({
-      "ID": product.idProduct,
+      ID: product.idProduct,
       "Product Name": product.nameProduct,
       "Indonesia Stock": product.stock_id,
       "Singapore Stock": product.stock_sg,
-      "Indonesia Price":product.priceID,
-      "Singapore Price":product.priceSG,
+      "Indonesia Price": product.priceID,
+      "Singapore Price": product.priceSG,
       "Product Type": product.type,
-      "Description": product.description,
+      Description: product.description,
     }));
     await onGetExporProduct("Inventory Website", "Batch 1", dataToExport);
   }, [defaultProduct]);
@@ -317,6 +345,13 @@ export default function HomeDashboard() {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
+            <Button
+              color="primary"
+              endContent={<RiFileExcel2Fill />}
+              onPress={openImportModal}
+            >
+              Import Product
+            </Button>
             <Button
               color="primary"
               endContent={<RiFileExcel2Fill />}
@@ -415,6 +450,8 @@ export default function HomeDashboard() {
   }, [
     filterValue,
     onSearchChange,
+    openImportModal,
+    exportExcel,
     statusFilter,
     statusOptions,
     visibleColumns,
@@ -606,360 +643,346 @@ export default function HomeDashboard() {
   function renderModal() {
     if (modal === "detail") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            classNames={{ base: "light text-black max-w-fit" }}
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Detail Products
-                  </ModalHeader>
-                  <ModalBody>
-                    <div className="grid grid-cols-3 ">
-                      <p>ID Product</p>
-                      <p className="col-span-2">: {selectedItem?.idProduct}</p>
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          classNames={{ base: "light text-black max-w-fit" }}
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Detail Products
+                </ModalHeader>
+                <ModalBody>
+                  <div className="grid grid-cols-3 ">
+                    <p>ID Product</p>
+                    <p className="col-span-2">: {selectedItem?.idProduct}</p>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <p>Name Product</p>
+                    <p className="col-span-2">: {selectedItem?.nameProduct}</p>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <p>Type Product</p>
+                    <p className="col-span-2">: {selectedItem?.type}</p>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <p>Price SG Product</p>
+                    <p className="col-span-2">
+                      :
+                      <CurrencyInput
+                        readOnly
+                        intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                        defaultValue={0}
+                        decimalsLimit={2}
+                        value={
+                          selectedItem?.priceSG ? selectedItem?.priceSG : 0
+                        }
+                      />
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <p>Price ID Product</p>
+                    <p className="col-span-2">
+                      :
+                      <CurrencyInput
+                        readOnly
+                        intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                        value={
+                          selectedItem?.priceID ? selectedItem?.priceID : 0
+                        }
+                      />
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 ">
+                    <p>Stock SG Product</p>
+                    <p className="col-span-2">
+                      : {selectedItem?.stock_sg ? selectedItem?.stock_sg : 0}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 ">
+                    <p>Stock ID Product</p>
+                    <p className="col-span-2">
+                      : {selectedItem?.stock_id ? selectedItem?.stock_id : 0}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <p>Description Product &emsp; </p>{" "}
+                    <div className="col-span-2">
+                      <Textarea isReadOnly value={selectedItem?.description} />
                     </div>
-                    <div className="grid grid-cols-3">
-                      <p>Name Product</p>
-                      <p className="col-span-2">
-                        : {selectedItem?.nameProduct}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3">
-                      <p>Type Product</p>
-                      <p className="col-span-2">: {selectedItem?.type}</p>
-                    </div>
-                    <div className="grid grid-cols-3">
-                      <p>Price SG Product</p>
-                      <p className="col-span-2">
-                        :
-                        <CurrencyInput
-                          readOnly
-                          intlConfig={{ locale: "en-SG", currency: "SGD" }}
-                          defaultValue={0}
-                          decimalsLimit={2}
-                          value={
-                            selectedItem?.priceSG ? selectedItem?.priceSG : 0
-                          }
-                        />
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3">
-                      <p>Price ID Product</p>
-                      <p className="col-span-2">
-                        :
-                        <CurrencyInput
-                          readOnly
-                          intlConfig={{ locale: "id-ID", currency: "IDR" }}
-                          value={
-                            selectedItem?.priceID ? selectedItem?.priceID : 0
-                          }
-                        />
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3 ">
-                      <p>Stock SG Product</p>
-                      <p className="col-span-2">
-                        : {selectedItem?.stock_sg ? selectedItem?.stock_sg : 0}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3 ">
-                      <p>Stock ID Product</p>
-                      <p className="col-span-2">
-                        : {selectedItem?.stock_id ? selectedItem?.stock_id : 0}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3">
-                      <p>Description Product &emsp; </p>{" "}
-                      <div className="col-span-2">
-                        <Textarea
-                          isReadOnly
-                          value={selectedItem?.description}
-                        />
-                      </div>
-                    </div>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={onClose}
-                      className="bg-greenbt text-white"
-                    >
-                      Tutup
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-greenbt text-white"
+                  >
+                    Tutup
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "delete") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            classNames={{ base: "light text-black" }}
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Delete Products
-                  </ModalHeader>
-                  <ModalBody>
-                    <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={onClose}
-                      className="bg-bluebt text-white"
-                    >
-                      Batal
-                    </Button>
-                    <Button
-                      variant="solid"
-                      onPress={() => deleteProduct(selectedItem)}
-                      className="bg-red-600 text-white"
-                    >
-                      Hapus
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          classNames={{ base: "light text-black" }}
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Delete Products
+                </ModalHeader>
+                <ModalBody>
+                  <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-bluebt text-white"
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    variant="solid"
+                    onPress={() => deleteProduct(selectedItem)}
+                    className="bg-red-600 text-white"
+                  >
+                    Hapus
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "edit") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Edit Product
-                  </ModalHeader>
-                  <ModalBody>
-                    <Input
-                      isRequired
-                      autoFocus
-                      label="ID Product"
-                      labelPlacement="outside"
-                      type="text"
-                      variant="bordered"
-                      value={selectedItem?.idProduct}
-                      onValueChange={(datas) =>
-                        setselectedItem((prev: any) => {
-                          return { ...prev, idProduct: datas };
-                        })
-                      }
-                    />
-                    <Input
-                      isRequired
-                      label="Product Name"
-                      labelPlacement="outside"
-                      type="text"
-                      inputMode="numeric"
-                      variant="bordered"
-                      value={selectedItem?.nameProduct}
-                      onValueChange={(datas) =>
-                        setselectedItem((prev: any) => {
-                          return { ...prev, nameProduct: datas };
-                        })
-                      }
-                    />
-                    <Select
-                      isRequired
-                      items={type}
-                      label="Type Product"
-                      placeholder="Select an Type"
-                      selectedKeys={[selectedItem!.type]}
-                      onChange={handleSelectionChangeEdit}
-                    >
-                      {(types) => (
-                        <SelectItem key={types?.type}>{types?.type}</SelectItem>
-                      )}
-                    </Select>
-                    <h2>SG Price</h2>
-                    <CurrencyInput
-                      id="input-example"
-                      name="Price"
-                      intlConfig={{ locale: "en-SG", currency: "SGD" }}
-                      placeholder="Please enter price"
-                      defaultValue={0}
-                      decimalsLimit={2}
-                      allowDecimals={true}
-                      step={1}
-                      className="bg-gray-100 py-2 px-1 rounded-md"
-                      // defaultValue={1000}
-                      // // decimalsLimit={2}
-                      value={selectedItem.priceSG}
-                      onValueChange={(value, name, values) =>
-                        setselectedItem((prev: any) => {
-                          return {
-                            ...prev,
-                            priceSG: value !== undefined ? value : 0,
-                          };
-                        })
-                      }
-                    />
-                    <h2>IND Price</h2>
-                    <CurrencyInput
-                      id="input-example"
-                      name="Price"
-                      intlConfig={{ locale: "id-ID", currency: "IDR" }}
-                      placeholder="Please enter price"
-                      className="bg-gray-100 py-2 px-1 rounded-md"
-                      defaultValue={0}
-                      decimalsLimit={2}
-                      allowDecimals={true}
-                      step={1}
-                      // defaultValue={1000}
-                      // // decimalsLimit={2}
-                      value={selectedItem.priceID}
-                      onValueChange={(value, name, values) =>
-                        setselectedItem((prev: any) => {
-                          return {
-                            ...prev,
-                            priceID: value !== undefined ? value : 0,
-                          };
-                        })
-                      }
-                    />
-                    <div className="">
-                      <h1>
-                        Image<span className="text-red-500 ml-1">*</span>
-                      </h1>
-                      <div className="flex flex-col gap-2">
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Edit Product
+                </ModalHeader>
+                <ModalBody>
+                  <Input
+                    isRequired
+                    autoFocus
+                    label="ID Product"
+                    labelPlacement="outside"
+                    type="text"
+                    variant="bordered"
+                    value={selectedItem?.idProduct}
+                    onValueChange={(datas) =>
+                      setselectedItem((prev: any) => {
+                        return { ...prev, idProduct: datas };
+                      })
+                    }
+                  />
+                  <Input
+                    isRequired
+                    label="Product Name"
+                    labelPlacement="outside"
+                    type="text"
+                    inputMode="numeric"
+                    variant="bordered"
+                    value={selectedItem?.nameProduct}
+                    onValueChange={(datas) =>
+                      setselectedItem((prev: any) => {
+                        return { ...prev, nameProduct: datas };
+                      })
+                    }
+                  />
+                  <Select
+                    isRequired
+                    items={type}
+                    label="Type Product"
+                    placeholder="Select an Type"
+                    selectedKeys={[selectedItem!.type]}
+                    onChange={handleSelectionChangeEdit}
+                  >
+                    {(types) => (
+                      <SelectItem key={types?.type}>{types?.type}</SelectItem>
+                    )}
+                  </Select>
+                  <h2>SG Price</h2>
+                  <CurrencyInput
+                    id="input-example"
+                    name="Price"
+                    intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                    placeholder="Please enter price"
+                    defaultValue={0}
+                    decimalsLimit={2}
+                    allowDecimals={true}
+                    step={1}
+                    className="bg-gray-100 py-2 px-1 rounded-md"
+                    // defaultValue={1000}
+                    // // decimalsLimit={2}
+                    value={selectedItem.priceSG}
+                    onValueChange={(value, name, values) =>
+                      setselectedItem((prev: any) => {
+                        return {
+                          ...prev,
+                          priceSG: value !== undefined ? value : 0,
+                        };
+                      })
+                    }
+                  />
+                  <h2>IND Price</h2>
+                  <CurrencyInput
+                    id="input-example"
+                    name="Price"
+                    intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                    placeholder="Please enter price"
+                    className="bg-gray-100 py-2 px-1 rounded-md"
+                    defaultValue={0}
+                    decimalsLimit={2}
+                    allowDecimals={true}
+                    step={1}
+                    // defaultValue={1000}
+                    // // decimalsLimit={2}
+                    value={selectedItem.priceID}
+                    onValueChange={(value, name, values) =>
+                      setselectedItem((prev: any) => {
+                        return {
+                          ...prev,
+                          priceID: value !== undefined ? value : 0,
+                        };
+                      })
+                    }
+                  />
+                  <div className="">
+                    <h1>
+                      Image<span className="text-red-500 ml-1">*</span>
+                    </h1>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => openFilePicker()}
+                        fullWidth={true}
+                        radius="sm"
+                      >
+                        {plainFiles?.length > 0
+                          ? "Choose Again"
+                          : "Choose File"}
+                      </Button>
+                      {plainFiles?.length > 0 && (
                         <Button
-                          onClick={() => openFilePicker()}
+                          onClick={() => clear()}
                           fullWidth={true}
                           radius="sm"
                         >
-                          {plainFiles?.length > 0
-                            ? "Choose Again"
-                            : "Choose File"}
+                          Clear
                         </Button>
-                        {plainFiles?.length > 0 && (
-                          <Button
-                            onClick={() => clear()}
-                            fullWidth={true}
-                            radius="sm"
-                          >
-                            Clear
-                          </Button>
-                        )}
-                        {plainFiles?.length > 0 ? (
-                          <>
-                            {plainFiles?.map((file) => (
-                              <div key={file.name}>{file.name}</div>
-                            ))}
-                          </>
-                        ) : selectedItem.image !== "" ? (
-                          <>
-                            <Image
-                              src={selectedItem.image}
-                              width={300}
-                              height={300}
-                              alt="Image Banner"
-                            />
-                          </>
-                        ) : null}
-                      </div>
+                      )}
+                      {plainFiles?.length > 0 ? (
+                        <>
+                          {plainFiles?.map((file) => (
+                            <div key={file.name}>{file.name}</div>
+                          ))}
+                        </>
+                      ) : selectedItem.image !== "" ? (
+                        <>
+                          <Image
+                            src={selectedItem.image}
+                            width={300}
+                            height={300}
+                            alt="Image Banner"
+                          />
+                        </>
+                      ) : null}
                     </div>
-                    <Checkbox
-                      isSelected={selectedItem.certificate}
-                      onValueChange={(datas) =>
-                        setselectedItem((prev: any) => {
-                          return { ...prev, certificate: datas };
-                        })
-                      }
-                      classNames={{ icon: "text-black bg-white" }}
-                      icon={<FaCheck className="bg-black " />}
-                      size="lg"
-                    >
-                      Certificate
-                    </Checkbox>
-                    <Textarea
-                      // isRequired
-                      label="Description"
-                      labelPlacement="outside"
-                      placeholder="Enter your description"
-                      // className="max-w-xs"
-                      value={selectedItem?.description}
-                      onValueChange={(datas) =>
-                        setselectedItem((prev: any) => {
-                          return { ...prev, description: datas };
-                        })
-                      }
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={() => updateProduct(selectedItem)}
-                      isDisabled={
-                        !selectedItem?.idProduct || !selectedItem?.type
-                      }
-                      className="bg-greenbt text-white"
-                    >
-                      Edit Product
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+                  </div>
+                  <Checkbox
+                    isSelected={selectedItem.certificate}
+                    onValueChange={(datas) =>
+                      setselectedItem((prev: any) => {
+                        return { ...prev, certificate: datas };
+                      })
+                    }
+                    classNames={{ icon: "text-black bg-white" }}
+                    icon={<FaCheck className="bg-black " />}
+                    size="lg"
+                  >
+                    Certificate
+                  </Checkbox>
+                  <Textarea
+                    // isRequired
+                    label="Description"
+                    labelPlacement="outside"
+                    placeholder="Enter your description"
+                    // className="max-w-xs"
+                    value={selectedItem?.description}
+                    onValueChange={(datas) =>
+                      setselectedItem((prev: any) => {
+                        return { ...prev, description: datas };
+                      })
+                    }
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={() => updateProduct(selectedItem)}
+                    isDisabled={!selectedItem?.idProduct || !selectedItem?.type}
+                    className="bg-greenbt text-white"
+                  >
+                    Edit Product
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else if (modal === "barcode") {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            classNames={{
-              base: "light text-black",
-              wrapper: "min-h-fit",
-              body: "min-h-fit",
-            }}
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white min-w-fit min-h-fit">
-                    Barcode
-                  </ModalHeader>
-                  <ModalBody className="flex flex-col jusitfy-center items-center">
-                    <div
-                      id="printbarcode"
-                      className="max-w-fit flex flex-col items-center justify-center px-1"
-                    >
-                      <ReactBarcode
-                        value={selectedItem?.idProduct}
-                        // style={{alignItems:'center',alignSelf:'center'}}
-                        // renderer="image"
-                      />
-                      <p>{selectedItem.nameProduct}</p>
-                      {/* <Barcode
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          classNames={{
+            base: "light text-black",
+            wrapper: "min-h-fit",
+            body: "min-h-fit",
+          }}
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white min-w-fit min-h-fit">
+                  Barcode
+                </ModalHeader>
+                <ModalBody className="flex flex-col jusitfy-center items-center">
+                  <div
+                    id="printbarcode"
+                    className="max-w-fit flex flex-col items-center justify-center px-1"
+                  >
+                    <ReactBarcode
+                      value={selectedItem?.idProduct}
+                      // style={{alignItems:'center',alignSelf:'center'}}
+                      // renderer="image"
+                    />
+                    <p>{selectedItem.nameProduct}</p>
+                    {/* <Barcode
                         value={"131251231251"}
                         // textPosition="center"
 												// displayValue={false}
@@ -968,132 +991,264 @@ export default function HomeDashboard() {
                         // ean128={true}
                         renderer="img"
                       /> */}
+                  </div>
+                  {/* <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p> */}
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-bluebt text-white"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    variant="solid"
+                    onPress={() => handleDownloadBarcode(selectedItem)}
+                    className="bg-red-600 text-white"
+                  >
+                    Download
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      );
+    } else if (modal === "Import") {
+      return (
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Import Product
+                </ModalHeader>
+                <ModalBody>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        color="primary"
+                        className="w-1/2"
+                        onPress={downloadExcelTemplate}
+                        startContent={<RiFileExcel2Fill />}
+                      >
+                        Download Template
+                      </Button>
+                      <Button 
+                        className="w-1/2"
+                        isLoading={isImporting}
+                        isDisabled={isImporting}
+                      >
+                        <label
+                          htmlFor="file-upload"
+                          className="cursor-pointer w-full py-2 px-4"
+                        >
+                          {isImporting ? "Importing..." : "Choose Excel File"}
+                        </label>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept=".xlsx, .xls"
+                          onChange={async (e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setIsImporting(true);
+                              try {
+                                const file = e.target.files[0];
+                                toast.info("Parsing Excel file...");
+                                const importedData = await parseExcelFile(file);
+                                
+                                toast.info(`Found ${importedData.length} products. Starting import...`);
+                                
+                                // Store imported data
+                                let successCount = 0;
+                                let skipCount = 0;
+                                let errorCount = 0;
+
+                                for (const item of importedData) {
+                                  // Check if product already exists
+                                  const exists = defaultProduct.find(
+                                    (p: any) => p.idProduct === item.idProduct
+                                  );
+                                  
+                                  if (exists) {
+                                    skipCount++;
+                                    continue;
+                                  }
+
+                                  // Add default fields for new product
+                                  const newProduct = {
+                                    ...item,
+                                    status: "Available",
+                                    stock_id: 0,
+                                    stock_sg: 0,
+                                    image: ""
+                                  };
+
+                                  try {
+                                    await createData("Inventory/Storage/Products", newProduct);
+                                    successCount++;
+                                  } catch (error) {
+                                    console.error("Error importing product:", error);
+                                    errorCount++;
+                                  }
+                                }
+                                
+                                // Show results
+                                if (successCount > 0) {
+                                  toast.success(`Successfully imported ${successCount} products`);
+                                }
+                                if (skipCount > 0) {
+                                  toast.warning(`Skipped ${skipCount} existing products`);
+                                }
+                                if (errorCount > 0) {
+                                  toast.error(`Failed to import ${errorCount} products`);
+                                }
+                                
+                                if (successCount > 0) {
+                                  setOnRefresh(true);
+                                  onClose();
+                                }
+                              } catch (error: any) {
+                                toast.error(`Import failed: ${error.message}`);
+                              } finally {
+                                setIsImporting(false);
+                                // Reset file input
+                                e.target.value = "";
+                              }
+                            }
+                          }}
+                          className="hidden"
+                          disabled={isImporting}
+                        />
+                      </Button>
                     </div>
-                    {/* <p>{`Are you sure delete data ${selectedItem?.idProduct} ${selectedItem?.nameProduct} ?`}</p> */}
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={onClose}
-                      className="bg-bluebt text-white"
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      variant="solid"
-                      onPress={() => handleDownloadBarcode(selectedItem)}
-                      className="bg-red-600 text-white"
-                    >
-                      Download
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+                    <p className="text-sm text-gray-500">
+                      Excel file should contain columns: ID/idProduct, Product Name/nameProduct, 
+                      Product Type/type, Description/description, Singapore Price/priceSG, 
+                      Indonesia Price/priceID, Notes/notes, Certificate/certificate
+                    </p>
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={onClose}
+                    className="bg-gray-500 text-white"
+                  >
+                    Cancel
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     } else {
       return (
-        <>
-          <Modal
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            placement="top-center"
-            scrollBehavior="inside"
-          >
-            <ModalContent>
-              {(onClose: any) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
-                    Add Product
-                  </ModalHeader>
-                  <ModalBody>
-                    <Input
-                      isRequired
-                      autoFocus
-                      label="ID Product"
-                      labelPlacement="outside"
-                      type="text"
-                      variant="bordered"
-                      value={product.idProduct}
-                      onValueChange={(datas) =>
-                        setProduct((prev) => {
-                          return { ...prev, idProduct: datas };
-                        })
-                      }
-                    />
-                    <Input
-                      isRequired
-                      label="Product Name"
-                      labelPlacement="outside"
-                      type="text"
-                      inputMode="numeric"
-                      variant="bordered"
-                      value={product.nameProduct}
-                      onValueChange={(datas) =>
-                        setProduct((prev) => {
-                          return { ...prev, nameProduct: datas };
-                        })
-                      }
-                    />
-                    <Select
-                      isRequired
-                      items={type}
-                      label="Type Product"
-                      placeholder="Select an Type"
-                      selectedKeys={[product.type]}
-                      onChange={handleSelectionChange}
-                    >
-                      {(types) => (
-                        <SelectItem key={types?.type}>{types?.type}</SelectItem>
-                      )}
-                    </Select>
-                    <h2>SG Price</h2>
-                    <CurrencyInput
-                      id="input-example"
-                      name="Price"
-                      intlConfig={{ locale: "en-SG", currency: "SGD" }}
-                      placeholder="Please enter price"
-                      defaultValue={0}
-                      decimalsLimit={2}
-                      allowDecimals={true}
-                      step={1}
-                      className="bg-gray-100 py-2 px-1 rounded-md"
-                      // defaultValue={1000}
-                      // // decimalsLimit={2}
-                      value={product.priceSG}
-                      onValueChange={(value, name, values) =>
-                        setProduct((prev) => {
-                          return {
-                            ...prev,
-                            priceSG: value !== undefined ? value : 0,
-                          };
-                        })
-                      }
-                    />
-                    <h2>IND Price</h2>
-                    <CurrencyInput
-                      id="input-example"
-                      name="Price"
-                      intlConfig={{ locale: "id-ID", currency: "IDR" }}
-                      placeholder="Please enter price"
-                      defaultValue={0}
-                      className="bg-gray-100 py-2 px-1 rounded-md"
-                      // defaultValue={1000}
-                      // // decimalsLimit={2}
-                      value={product.priceID}
-                      onValueChange={(value, name, values) =>
-                        setProduct((prev) => {
-                          return {
-                            ...prev,
-                            priceID: Number(value !== undefined ? value : 0),
-                          };
-                        })
-                      }
-                    />
+        <Modal
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="top-center"
+          scrollBehavior="inside"
+        >
+          <ModalContent>
+            {(onClose: any) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1 bg-toscadb text-white">
+                  Add Product
+                </ModalHeader>
+                <ModalBody>
+                  <Input
+                    isRequired
+                    autoFocus
+                    label="ID Product"
+                    labelPlacement="outside"
+                    type="text"
+                    variant="bordered"
+                    value={product.idProduct}
+                    onValueChange={(datas) =>
+                      setProduct((prev) => {
+                        return { ...prev, idProduct: datas };
+                      })
+                    }
+                  />
+                  <Input
+                    isRequired
+                    label="Product Name"
+                    labelPlacement="outside"
+                    type="text"
+                    inputMode="numeric"
+                    variant="bordered"
+                    value={product.nameProduct}
+                    onValueChange={(datas) =>
+                      setProduct((prev) => {
+                        return { ...prev, nameProduct: datas };
+                      })
+                    }
+                  />
+                  <Select
+                    isRequired
+                    items={type}
+                    label="Type Product"
+                    placeholder="Select an Type"
+                    selectedKeys={[product.type]}
+                    onChange={handleSelectionChange}
+                  >
+                    {(types) => (
+                      <SelectItem key={types?.id}>{types?.type}</SelectItem>
+                    )}
+                  </Select>
+                  <h2>SG Price</h2>
+                  <CurrencyInput
+                    id="input-example"
+                    name="Price"
+                    intlConfig={{ locale: "en-SG", currency: "SGD" }}
+                    placeholder="Please enter price"
+                    defaultValue={0}
+                    decimalsLimit={2}
+                    allowDecimals={true}
+                    step={1}
+                    className="bg-gray-100 py-2 px-1 rounded-md"
+                    // defaultValue={1000}
+                    // // decimalsLimit={2}
+                    value={product.priceSG}
+                    onValueChange={(value, name, values) =>
+                      setProduct((prev) => {
+                        return {
+                          ...prev,
+                          priceSG: value !== undefined ? value : 0,
+                        };
+                      })
+                    }
+                  />
+                  <h2>IND Price</h2>
+                  <CurrencyInput
+                    id="input-example"
+                    name="Price"
+                    intlConfig={{ locale: "id-ID", currency: "IDR" }}
+                    placeholder="Please enter price"
+                    defaultValue={0}
+                    className="bg-gray-100 py-2 px-1 rounded-md"
+                    // defaultValue={1000}
+                    // // decimalsLimit={2}
+                    value={product.priceID}
+                    onValueChange={(value, name, values) =>
+                      setProduct((prev) => {
+                        return {
+                          ...prev,
+                          priceID: Number(value !== undefined ? value : 0),
+                        };
+                      })
+                    }
+                  />
 
-                    {/* <Input
+                  {/* <Input
                       label="Price"
                       className="w-70v"
                       labelPlacement="outside"
@@ -1107,87 +1262,86 @@ export default function HomeDashboard() {
                         })
                       }
                     /> */}
-                    <Checkbox
-                      isSelected={product.certificate}
-                      onValueChange={(datas) =>
-                        setProduct((prev) => {
-                          return { ...prev, certificate: datas };
-                        })
-                      }
-                      classNames={{ icon: "text-black bg-white" }}
-                      icon={<FaCheck className="bg-black " />}
-                      size="lg"
-                    >
-                      Certificate
-                    </Checkbox>
-                    <div>
-                      <h1>
-                        Image<span className="text-red-500 ml-1">*</span>
-                      </h1>
-                      <div className="flex flex-col gap-2">
+                  <Checkbox
+                    isSelected={product.certificate}
+                    onValueChange={(datas) =>
+                      setProduct((prev) => {
+                        return { ...prev, certificate: datas };
+                      })
+                    }
+                    classNames={{ icon: "text-black bg-white" }}
+                    icon={<FaCheck className="bg-black " />}
+                    size="lg"
+                  >
+                    Certificate
+                  </Checkbox>
+                  <div>
+                    <h1>
+                      Image<span className="text-red-500 ml-1">*</span>
+                    </h1>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => openFilePicker()}
+                        fullWidth={true}
+                        radius="sm"
+                      >
+                        {plainFiles?.length > 0
+                          ? "Choose Again"
+                          : "Choose File"}
+                      </Button>
+                      {plainFiles?.length > 0 && (
                         <Button
-                          onClick={() => openFilePicker()}
+                          onClick={() => clear()}
                           fullWidth={true}
                           radius="sm"
                         >
-                          {plainFiles?.length > 0
-                            ? "Choose Again"
-                            : "Choose File"}
+                          Clear
                         </Button>
-                        {plainFiles?.length > 0 && (
-                          <Button
-                            onClick={() => clear()}
-                            fullWidth={true}
-                            radius="sm"
-                          >
-                            Clear
-                          </Button>
-                        )}
-                        {plainFiles?.map((file) => (
-                          <div key={file.name}>{file.name}</div>
-                        ))}
-                      </div>
+                      )}
+                      {plainFiles?.map((file) => (
+                        <div key={file.name}>{file.name}</div>
+                      ))}
                     </div>
-                    <Textarea
-                      label="Description"
-                      labelPlacement="outside"
-                      placeholder="Enter your description"
-                      // className="max-w-xs"
-                      value={product.description}
-                      onValueChange={(datas) =>
-                        setProduct((prev) => {
-                          return { ...prev, description: datas };
-                        })
-                      }
-                    />
-                    <Textarea
-                      label="Notes"
-                      labelPlacement="outside"
-                      placeholder="Enter your Notes"
-                      // className="max-w-xs"
-                      value={product.notes}
-                      onValueChange={(datas) =>
-                        setProduct((prev) => {
-                          return { ...prev, notes: datas };
-                        })
-                      }
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      variant="flat"
-                      onPress={addProductStorage}
-                      isDisabled={!product.idProduct || !product.type}
-                      className="bg-greenbt text-white"
-                    >
-                      Add Product
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
+                  </div>
+                  <Textarea
+                    label="Description"
+                    labelPlacement="outside"
+                    placeholder="Enter your description"
+                    // className="max-w-xs"
+                    value={product.description}
+                    onValueChange={(datas) =>
+                      setProduct((prev) => {
+                        return { ...prev, description: datas };
+                      })
+                    }
+                  />
+                  <Textarea
+                    label="Notes"
+                    labelPlacement="outside"
+                    placeholder="Enter your Notes"
+                    // className="max-w-xs"
+                    value={product.notes}
+                    onValueChange={(datas) =>
+                      setProduct((prev) => {
+                        return { ...prev, notes: datas };
+                      })
+                    }
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="flat"
+                    onPress={addProductStorage}
+                    isDisabled={!product.idProduct || !product.type}
+                    className="bg-greenbt text-white"
+                  >
+                    Add Product
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       );
     }
   }
