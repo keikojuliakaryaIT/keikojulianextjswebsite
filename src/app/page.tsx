@@ -103,9 +103,13 @@ function Login() {
 							classNames={{input:'bg-black'}}
             /> */}
             <h2>Email</h2>
-            <input onChange={(item) => setEmail(item.target.value)} />
+            <input
+              className="border-2 rounded-sm border-black"
+              onChange={(item) => setEmail(item.target.value)}
+            />
             <h2>Password</h2>
             <input
+              className="border-2 rounded-sm border-black"
               onChange={(item) => setPassword(item.target.value)}
               type={isVisible ? "text" : "password"}
             />
