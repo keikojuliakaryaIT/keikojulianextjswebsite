@@ -50,6 +50,7 @@ import { RiFileExcel2Fill } from "react-icons/ri";
 import { onGetExporProduct } from "@/components/export/exportExcel";
 import { parseExcelFile } from "@/components/export/importExcel";
 import { downloadExcelTemplate } from "@/components/export/createTemplate";
+import { renderType } from "@/components/function/product";
 
 const INITIAL_VISIBLE_COLUMNS = ["idProduct", "type", "status", "actions"];
 
@@ -77,7 +78,7 @@ type ProductItem = {
   priceSG: string | number;
   priceID: string | number;
   notes: string;
-  image: string;
+  inventory_image: string;
   status: "Available" | "Not Available" | "Out Of Stock";
   certificate: boolean;
 };
@@ -117,7 +118,7 @@ export default function HomeDashboard() {
     priceSG: "",
     priceID: "",
     notes: "",
-    image: "",
+    inventory_image: "",
     status: "Available",
     certificate: false,
   });
@@ -170,7 +171,9 @@ export default function HomeDashboard() {
     ],
     []
   );
-  const [type, setType] = useState<[{ id: string; type: string }]>();
+  const [type, setType] = useState<[{ id: string; type: string }]>([
+    { id: "1", type: "Electronics" },
+  ]);
   const [defaultProduct, setDefaultProduct] = useState<any>();
   const [location, setlocation] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
@@ -506,7 +509,8 @@ export default function HomeDashboard() {
         var data = { ...product };
         data.priceSG = Number(data.priceSG);
         data.priceID = Number(data.priceID);
-        data.image = link_photo;
+        data.inventory_image = link_photo;
+
         const { result, error } = await createData(
           `Inventory/Storage/Products`,
           data
@@ -524,7 +528,9 @@ export default function HomeDashboard() {
       var data = { ...product };
       data.priceSG = Number(data.priceSG);
       data.priceID = Number(data.priceID);
-      data.image = "";
+      data.inventory_image = "";
+      // console.log("data", data);
+      // return;
       const { result, error } = await createData(
         `Inventory/Storage/Products`,
         data
@@ -820,7 +826,7 @@ export default function HomeDashboard() {
                     onChange={handleSelectionChangeEdit}
                   >
                     {(types) => (
-                      <SelectItem key={types?.type}>{types?.type}</SelectItem>
+                      <SelectItem key={types.id}>{types?.type}</SelectItem>
                     )}
                   </Select>
                   <h2>SG Price</h2>
@@ -1035,12 +1041,12 @@ export default function HomeDashboard() {
                       <Button
                         color="primary"
                         className="w-1/2"
-                        onPress={downloadExcelTemplate}
+                        onPress={() => downloadExcelTemplate(type)}
                         startContent={<RiFileExcel2Fill />}
                       >
                         Download Template
                       </Button>
-                      <Button 
+                      <Button
                         className="w-1/2"
                         isLoading={isImporting}
                         isDisabled={isImporting}
@@ -1062,54 +1068,84 @@ export default function HomeDashboard() {
                                 const file = e.target.files[0];
                                 toast.info("Parsing Excel file...");
                                 const importedData = await parseExcelFile(file);
-                                
-                                toast.info(`Found ${importedData.length} products. Starting import...`);
-                                
+
+                                toast.info(
+                                  `Found ${importedData.length} products. Starting import...`
+                                );
+
                                 // Store imported data
                                 let successCount = 0;
                                 let skipCount = 0;
                                 let errorCount = 0;
 
                                 for (const item of importedData) {
+                                  const newProduct = {
+                                    ...item,
+                                    status: "Available",
+                                    stock_id: 0,
+                                    stock_sg: 0,
+                                    inventory_image: "",
+                                  };
+
                                   // Check if product already exists
                                   const exists = defaultProduct.find(
                                     (p: any) => p.idProduct === item.idProduct
                                   );
-                                  
+
+                                  // Validate if product type exists in available types
+                                  const typeExists = type?.find(
+                                    (t: any) => t.type === item.type
+                                  );
+
+                                  if (!typeExists) {
+                                    toast.error(
+                                      `Product type "${item.type}" for product ${item.idProduct} does not exist in system`
+                                    );
+                                    errorCount++;
+                                    continue;
+                                  } else {
+                                    newProduct.type = typeExists.id;
+                                  }
+                                  console.log("item", item.type);
                                   if (exists) {
                                     skipCount++;
                                     continue;
                                   }
 
                                   // Add default fields for new product
-                                  const newProduct = {
-                                    ...item,
-                                    status: "Available",
-                                    stock_id: 0,
-                                    stock_sg: 0,
-                                    image: ""
-                                  };
 
                                   try {
-                                    await createData("Inventory/Storage/Products", newProduct);
+                                    await createData(
+                                      "Inventory/Storage/Products",
+                                      newProduct
+                                    );
                                     successCount++;
                                   } catch (error) {
-                                    console.error("Error importing product:", error);
+                                    console.error(
+                                      "Error importing product:",
+                                      error
+                                    );
                                     errorCount++;
                                   }
                                 }
-                                
+
                                 // Show results
                                 if (successCount > 0) {
-                                  toast.success(`Successfully imported ${successCount} products`);
+                                  toast.success(
+                                    `Successfully imported ${successCount} products`
+                                  );
                                 }
                                 if (skipCount > 0) {
-                                  toast.warning(`Skipped ${skipCount} existing products`);
+                                  toast.warning(
+                                    `Skipped ${skipCount} existing products`
+                                  );
                                 }
                                 if (errorCount > 0) {
-                                  toast.error(`Failed to import ${errorCount} products`);
+                                  toast.error(
+                                    `Failed to import ${errorCount} products`
+                                  );
                                 }
-                                
+
                                 if (successCount > 0) {
                                   setOnRefresh(true);
                                   onClose();
@@ -1129,9 +1165,11 @@ export default function HomeDashboard() {
                       </Button>
                     </div>
                     <p className="text-sm text-gray-500">
-                      Excel file should contain columns: ID/idProduct, Product Name/nameProduct, 
-                      Product Type/type, Description/description, Singapore Price/priceSG, 
-                      Indonesia Price/priceID, Notes/notes, Certificate/certificate
+                      Excel file should contain columns: ID/idProduct, Product
+                      Name/nameProduct, Product Type/type,
+                      Description/description, Singapore Price/priceSG,
+                      Indonesia Price/priceID, Notes/notes,
+                      Certificate/certificate
                     </p>
                   </div>
                 </ModalBody>
@@ -1359,12 +1397,9 @@ export default function HomeDashboard() {
       const cellValue = item[columnKey];
       switch (columnKey) {
         case "stock":
-          return (
-            <p>
-              {(item?.stock_id ? item?.stock_id : 0) +
-                (item?.stock_sg ? item?.stock_sg : 0)}
-            </p>
-          );
+          return <p>{(item?.stock_id ?? 0) + (item?.stock_sg ?? 0)}</p>;
+        case "type":
+          return <p>{renderType(type, item?.type)}</p>;
         case "actions":
           return (
             <div className="relative flex items-center gap-2">
@@ -1407,7 +1442,7 @@ export default function HomeDashboard() {
           return cellValue;
       }
     },
-    []
+    [type]
   );
 
   if (onRefresh) {

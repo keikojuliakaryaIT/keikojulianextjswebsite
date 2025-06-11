@@ -13,6 +13,7 @@ export default async function updateData(
   let user = getAuth().currentUser?.email;
   let datas = {...data};
   datas.email = user;
+  datas.updatedAt = new Date();
   const docRef = doc(db, colllection, id);
   try {
     result = await updateDoc(docRef, datas);
