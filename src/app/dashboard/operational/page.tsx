@@ -207,6 +207,7 @@ export default function Operational() {
   const [selectedPlatform, setSelectedPlatform] = useState<any>();
   const [selectedLocation, setSelectedLocation] = useState<any>();
   const [stockProduct, setStockProduct] = useState(0);
+  const [invoiceNumberStockOut, setInvoiceNumberStockOut] = useState("");
   const [price, setPrice] = useState<string | number>(0);
   const [notes, setNotes] = useState("");
   const [filterValue, setFilterValue] = useState("");
@@ -411,6 +412,7 @@ export default function Operational() {
       const { result, error } = await createData(`Inventory/Storage/StockOut`, {
         location: selectedLocation,
         category: selectedCategory,
+        invoiceNumber: invoiceNumberStockOut,
         idProduct: findData?.idProduct,
         nameProduct: findData?.nameProduct,
         platform: "",
@@ -1313,6 +1315,16 @@ export default function Operational() {
                       </SelectItem>
                     )}
                   </Select>
+                  <Input
+                    isRequired
+                    label="Invoice Number"
+                    labelPlacement="outside"
+                    // className="grid-rows-1 gap-"
+                    type="text"
+                    variant="bordered"
+                    value={invoiceNumberStockOut}
+                    onValueChange={setInvoiceNumberStockOut}
+                  />
                   <Autocomplete
                     isRequired
                     // autoFocus
@@ -1620,7 +1632,9 @@ export default function Operational() {
                         !selectedLocation ||
                         selectedLocation === "" ||
                         !selectedPlatform ||
-                        selectedPlatform === ""
+                        selectedPlatform === "" ||
+                        !invoiceNumberStockOut ||
+                        invoiceNumberStockOut === ""
                       }
                       size="lg"
                       onPress={pushDataStockOut}
@@ -1767,6 +1781,7 @@ export default function Operational() {
             const stockOut = {
               location: String(row["Location"] ?? "").trim(),
               category: String(row["Category"] ?? "").trim(),
+              invoiceNumber: String(row["Invoice No"] ?? "").trim(),
               idProduct: String(row["Product ID"] ?? "").trim(),
               platform: String(row["Platform"] ?? "").trim(),
               stockProduct: Number(row["Quantity"] ?? 0),
@@ -1784,7 +1799,8 @@ export default function Operational() {
               !stockOut.idProduct ||
               !stockOut.location ||
               !stockOut.stockProduct ||
-              !stockOut.category
+              !stockOut.category ||
+              !stockOut.invoiceNumber
             ) {
               console.warn(
                 `Row ${
@@ -2052,6 +2068,7 @@ export default function Operational() {
       {
         Location: "Jakarta",
         Category: "Sales",
+        invoiceNumber: "INV001",
         "Product ID": "PROD001",
         Platform: "Shopee",
         Quantity: 10,
@@ -2064,6 +2081,7 @@ export default function Operational() {
       {
         Location: "Singapore",
         Category: "Marketing",
+        invoiceNumber: "INV002",
         "Product ID": "PROD002",
         Platform: "Lazada",
         Quantity: 5,
@@ -2087,6 +2105,12 @@ export default function Operational() {
         Required: "Yes",
         Description: "Category (must match existing categories)",
         Example: "Sales",
+      },
+      {
+        Field: "Invoice No",
+        Required: "Yes",
+        Description: "Sale identifier (must match existing products)",
+        Example: "INV001",
       },
       {
         Field: "Product ID",
@@ -2671,8 +2695,6 @@ export default function Operational() {
     columns,
     openStockInModal,
     openStockOutModal,
-    downloadStockInTemplate,
-    downloadStockOutTemplate,
     defaultProduct?.length,
     onRowsPerPageChange,
     onClear,
