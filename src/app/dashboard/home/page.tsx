@@ -71,6 +71,7 @@ type ProductType = {
 type ProductItem = {
   idProduct: string;
   nameProduct: string;
+  inventoryName: string;
   type: string;
   stock_id: number;
   stock_sg: number;
@@ -111,6 +112,7 @@ export default function HomeDashboard() {
   const [product, setProduct] = useState<ProductItem>({
     idProduct: "",
     nameProduct: "",
+    inventoryName: "",
     type: "",
     stock_id: 0,
     stock_sg: 0,
@@ -163,7 +165,7 @@ export default function HomeDashboard() {
   const columns = useMemo(
     () => [
       { name: "ID", uid: "idProduct", sortable: true },
-      { name: "NAME", uid: "nameProduct", sortable: true },
+      { name: "NAME", uid: "inventoryName", sortable: true },
       { name: "TYPE", uid: "type", sortable: true },
       { name: "STOCK", uid: "stock", sortable: true },
       { name: "STATUS", uid: "status", sortable: true },
@@ -194,6 +196,24 @@ export default function HomeDashboard() {
 
     if (!error) {
       setDefaultProduct(result);
+      // result.forEach(async (item: any) => {
+      //   const data = {
+      //     ...item,
+      //     inventoryName: item.nameProduct,
+      //   };
+      //   delete data.nomor;
+      //   delete data.id;
+      //   const { result, error } = await updateData(
+      //     `Inventory/Storage/Products`,
+      //     item.id,
+      //     data
+      //   );
+      //   if (error) {
+      //     console.error("Error updating product:", error);
+      //   } else {
+      //     console.log("Product updated successfully:", result);
+      //   }
+      // });
     } else {
       return toast("ERROR, Please Try Again !");
     }
@@ -506,15 +526,12 @@ export default function HomeDashboard() {
       }
       const link_photo = result;
       if (link_photo) {
-        var data = { ...product };
+        const data = { ...product };
         data.priceSG = Number(data.priceSG);
         data.priceID = Number(data.priceID);
         data.inventory_image = link_photo;
 
-        const { result, error } = await createData(
-          `Inventory/Storage/Products`,
-          data
-        );
+        const { error } = await createData(`Inventory/Storage/Products`, data);
         if (!error) {
           toast.success("Add Product successful!");
           setOnRefresh(true);
@@ -525,10 +542,11 @@ export default function HomeDashboard() {
         }
       }
     } else {
-      var data = { ...product };
+      const data = { ...product };
       data.priceSG = Number(data.priceSG);
       data.priceID = Number(data.priceID);
       data.inventory_image = "";
+      data.inventoryName = data.nameProduct;
       // console.log("data", data);
       // return;
       const { result, error } = await createData(
@@ -669,7 +687,7 @@ export default function HomeDashboard() {
                   </div>
                   <div className="grid grid-cols-3">
                     <p>Name Product</p>
-                    <p className="col-span-2">: {selectedItem?.nameProduct}</p>
+                    <p className="col-span-2">: {selectedItem?.inventoryName}</p>
                   </div>
                   <div className="grid grid-cols-3">
                     <p>Type Product</p>
@@ -1085,6 +1103,7 @@ export default function HomeDashboard() {
                                     stock_id: 0,
                                     stock_sg: 0,
                                     inventory_image: "",
+                                    inventoryName: item.nameProduct,
                                   };
 
                                   // Check if product already exists
