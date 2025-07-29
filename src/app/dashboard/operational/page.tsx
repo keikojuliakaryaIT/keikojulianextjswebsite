@@ -811,7 +811,9 @@ export default function Operational() {
                                       );
                                     }
                                     const stockInData = { ...item };
-                                    stockInData.idProduct = productData.id;
+                                    stockInData.idProduct =
+                                      productData.idProduct;
+                                    stockInData.id = productData.id;
 
                                     // Create stock in record
                                     await createData(
@@ -1952,7 +1954,7 @@ export default function Operational() {
   const downloadStockInTemplate = useCallback(() => {
     const templateData = [
       {
-        Location: "Jakarta",
+        Location: "Indonesia",
         "Product ID": "PROD001",
         Quantity: 100,
         "Invoice Number": "INV001",

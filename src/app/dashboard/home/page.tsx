@@ -104,7 +104,7 @@ export default function HomeDashboard() {
   const [statusFilter, setStatusFilter] = useState<any>("all");
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: "nameProduct",
+    column: "idProduct",
     direction: "ascending",
   });
   const [selectedKeys, setSelectedKeys] = React.useState<any>(new Set([]));
@@ -167,7 +167,9 @@ export default function HomeDashboard() {
       { name: "ID", uid: "idProduct", sortable: true },
       { name: "NAME", uid: "inventoryName", sortable: true },
       { name: "TYPE", uid: "type", sortable: true },
-      { name: "STOCK", uid: "stock", sortable: true },
+      { name: "All Stock", uid: "AllStock" },
+      { name: "Singapore Stock", uid: "StockSG", sortable: true },
+      { name: "Indonesia Stock", uid: "StockIDN", sortable: true },
       { name: "STATUS", uid: "status", sortable: true },
       { name: "ACTIONS", uid: "actions" },
     ],
@@ -199,7 +201,8 @@ export default function HomeDashboard() {
       // result.forEach(async (item: any) => {
       //   const data = {
       //     ...item,
-      //     inventoryName: item.nameProduct,
+      //     stock_sg:0,
+      //     stock_id:0,
       //   };
       //   delete data.nomor;
       //   delete data.id;
@@ -274,8 +277,20 @@ export default function HomeDashboard() {
     const end = start + rowsPerPage;
     return [...filteredItems]
       .sort((a: ProductType, b: ProductType) => {
-        const first = a[sortDescriptor.column as keyof ProductType] as number;
-        const second = b[sortDescriptor.column as keyof ProductType] as number;
+        const first = a[
+          (sortDescriptor.column === "StockIDN"
+            ? "stock_id"
+            : sortDescriptor.column === "StockStockSGDN"
+            ? "stock_sg"
+            : sortDescriptor.column) as keyof ProductType
+        ] as number;
+        const second = b[
+          (sortDescriptor.column === "StockIDN"
+            ? "stock_id"
+            : sortDescriptor.column === "StockStockSGDN"
+            ? "stock_sg"
+            : sortDescriptor.column) as keyof ProductType
+        ] as number;
         const cmp = first < second ? -1 : first > second ? 1 : 0;
         return sortDescriptor.direction === "descending" ? -cmp : cmp;
       })
@@ -687,7 +702,9 @@ export default function HomeDashboard() {
                   </div>
                   <div className="grid grid-cols-3">
                     <p>Name Product</p>
-                    <p className="col-span-2">: {selectedItem?.inventoryName}</p>
+                    <p className="col-span-2">
+                      : {selectedItem?.inventoryName}
+                    </p>
                   </div>
                   <div className="grid grid-cols-3">
                     <p>Type Product</p>
@@ -1415,8 +1432,12 @@ export default function HomeDashboard() {
     ({ item, columnKey, onDetail, onEdit, onDelete, onBarcode }: propsBody) => {
       const cellValue = item[columnKey];
       switch (columnKey) {
-        case "stock":
+        case "AllStock":
           return <p>{(item?.stock_id ?? 0) + (item?.stock_sg ?? 0)}</p>;
+        case "StockSG":
+          return <p>{item?.stock_sg ?? 0}</p>;
+        case "StockIDN":
+          return <p>{item?.stock_id ?? 0}</p>;
         case "type":
           return <p>{renderType(type, item?.type)}</p>;
         case "actions":
